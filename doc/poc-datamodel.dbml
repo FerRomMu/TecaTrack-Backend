@@ -1,0 +1,59 @@
+Table users {
+  id uuid [pk]
+  email text [unique, not null]
+  full_name text
+  created_at timestamptz
+}
+
+Table accounts {
+  id uuid [pk]
+  user_id uuid [not null, ref: > users.id]
+
+  bank text [not null]
+  balance numeric [not null]
+
+  created_at timestamptz
+  updated_at timestamptz
+}
+
+Table files {
+  id uuid [pk]
+
+  filename text
+  content_type text [not null]   // image/png, image/jpeg, application/pdf
+  data bytea [not null]          // binario
+
+  created_at timestamptz
+}
+
+Table receipts {
+  id uuid [pk]
+  user_id uuid [not null, ref: > users.id]
+
+  file_id uuid [not null, ref: > files.id]
+
+  status text [not null]         // UPLOADED | PROCESSED | FAILED
+
+  extracted_data jsonb
+  ocr_text text
+
+  created_at timestamptz
+  processed_at timestamptz
+}
+
+Table transactions {
+  id uuid [pk]
+  
+  sender_user_id uuid [not null, ref: > users.id]
+  receiver_user_id uuid [not null, ref: > users.id]
+
+  from_account_id uuid [not null, ref: > accounts.id]
+  to_account_id uuid [not null, ref: > accounts.id]
+
+  amount numeric [not null]
+
+  receipt_id uuid [ref: > receipts.id]
+
+  occurred_at timestamptz [not null]
+  created_at timestamptz
+}

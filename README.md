@@ -23,6 +23,40 @@ This project uses `uv` for dependency management and `ruff` for linting and form
    # On Linux/macOS:
    source .venv/bin/activate
    ```
+### Database Setup and Migrations (Alembic)
+
+This project uses PostgreSQL for the database and Alembic for schema migrations.
+
+1. Create the PostgreSQL Database:
+
+   ```bash
+   psql -U postgres -c "CREATE DATABASE tecatrack;"
+   ```
+
+2. Configure the `.env` file:
+   Create a `.env` file in the root of the backend directory (`TecaTrack-Backend`) and specify your database connection details through the `DATABASE_URL` variable:
+   ```env
+   DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/tecatrack
+   ```
+
+3. Apply database migrations:
+   Run the following command to create the necessary tables in your newly created database:
+   ```bash
+   alembic upgrade head
+   ```
+
+### Managing Migrations (For developers)
+
+Whenever you add or modify a model in `src/models.py`, you'll need to generate and apply a new migration:
+
+1. **Auto-generate a migration script:**
+   ```bash
+   alembic revision --autogenerate -m "describe_your_changes_here"
+   ```
+2. **Apply the migration to the database:**
+   ```bash
+   alembic upgrade head
+   ```
 
 ### Linting and Formatting
 

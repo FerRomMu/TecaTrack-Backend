@@ -1,13 +1,20 @@
+import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Numeric, Text, func
+from sqlalchemy import DateTime, Enum, ForeignKey, Numeric, Text, func
 from sqlalchemy.dialects.postgresql import BYTEA, JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(DeclarativeBase):
     pass
+
+
+class ReceiptStatus(enum.StrEnum):
+    PENDING = "PENDING"
+    PROCESSED = "PROCESSED"
+    FAILED = "FAILED"
 
 
 class User(Base):
@@ -33,7 +40,7 @@ class Account(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True
     )
 
     bank: Mapped[str] = mapped_column(Text, nullable=False)
@@ -50,6 +57,17 @@ class Account(Base):
     )
 
     user: Mapped["User"] = relationship(back_populates="accounts")
+
+    outgoing_transactions: Mapped[list["Transaction"]] = relationship(
+        "Transaction",
+        back_populates="from_account",
+        foreign_keys="Transaction.from_account_id",
+    )
+    incoming_transactions: Mapped[list["Transaction"]] = relationship(
+        "Transaction",
+        back_populates="to_account",
+        foreign_keys="Transaction.to_account_id",
+    )
 
 
 class File(Base):
@@ -78,13 +96,15 @@ class Receipt(Base):
     )
 
     user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True
     )
     file_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("files.id"), nullable=False
+        UUID(as_uuid=True), ForeignKey("files.id"), nullable=False, index=True
     )
 
-    status: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[ReceiptStatus] = mapped_column(
+        Enum(ReceiptStatus, name="receipt_status"), nullable=False
+    )
 
     extracted_data: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     ocr_text: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -109,23 +129,23 @@ class Transaction(Base):
     )
 
     sender_user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True
     )
     receiver_user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True
     )
 
     from_account_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("accounts.id"), nullable=False
+        UUID(as_uuid=True), ForeignKey("accounts.id"), nullable=False, index=True
     )
     to_account_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("accounts.id"), nullable=False
+        UUID(as_uuid=True), ForeignKey("accounts.id"), nullable=False, index=True
     )
 
     amount: Mapped[Numeric] = mapped_column(Numeric(18, 2), nullable=False)
 
     receipt_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("receipts.id"), nullable=True
+        UUID(as_uuid=True), ForeignKey("receipts.id"), nullable=True, index=True
     )
 
     occurred_at: Mapped[datetime] = mapped_column(
@@ -135,4 +155,28 @@ class Transaction(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
-    receipt: Mapped["Receipt | None"] = relationship(back_populates="transactions")
+    sender_user: Mapped["User"] = relationship(
+        "User",
+        foreign_keys=[sender_user_id],
+    )
+    receiver_user: Mapped["User"] = relationship(
+        "User",
+        foreign_keys=[receiver_user_id],
+    )
+
+    from_account: Mapped["Account"] = relationship(
+        "Account",
+        back_populates="outgoing_transactions",
+        foreign_keys=[from_account_id],
+    )
+    to_account: Mapped["Account"] = relationship(
+        "Account",
+        back_populates="incoming_transactions",
+        foreign_keys=[to_account_id],
+    )
+
+    receipt: Mapped["Receipt | None"] = relationship(
+        "Receipt",
+        back_populates="transactions",
+        foreign_keys=[receipt_id],
+    )

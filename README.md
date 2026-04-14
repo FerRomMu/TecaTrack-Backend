@@ -23,6 +23,19 @@ This project uses `uv` for dependency management and `ruff` for linting and form
    # On Linux/macOS:
    source .venv/bin/activate
    ```
+
+3. Install the project in editable mode:
+   ```bash
+   uv pip install -e .
+   ```
+
+### Running the Application
+
+To start the development server with hot-reload:
+
+```bash
+uv run uvicorn tecatrack_backend.main:app --reload
+```
 ### Database Setup and Migrations (Alembic)
 
 This project uses PostgreSQL for the database and Alembic for schema migrations.
@@ -47,7 +60,7 @@ This project uses PostgreSQL for the database and Alembic for schema migrations.
 
 ### Managing Migrations (For developers)
 
-Whenever you add or modify a model in `src/models.py`, you'll need to generate and apply a new migration:
+Whenever you add or modify a model in `src/tecatrack_backend/models.py`, you'll need to generate and apply a new migration:
 
 1. **Auto-generate a migration script:**
    ```bash

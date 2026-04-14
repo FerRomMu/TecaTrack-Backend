@@ -7,7 +7,7 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
-from src.models import Base
+from tecatrack_backend.models import Base
 
 # Load .env file
 load_dotenv()

@@ -29,7 +29,5 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
     Ensures that the session is automatically closed after the request is finished.
     """
     async with async_session_factory() as session:
-        try:
+        async with session.begin():
             yield session
-        finally:
-            await session.close()

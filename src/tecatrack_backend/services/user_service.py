@@ -1,6 +1,6 @@
 import uuid
 
-from tecatrack_backend.exceptions import UserAlreadyExistsError, UserNotFoundError
+from tecatrack_backend.core.exceptions import UserAlreadyExistsError, UserNotFoundError
 from tecatrack_backend.models import User
 from tecatrack_backend.repositories.user_repository import UserRepository
 from tecatrack_backend.schemas.user import UserCreate, UserUpdate

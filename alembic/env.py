@@ -35,16 +35,12 @@ target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
-    """Run migrations in 'offline' mode.
-
-    This configures the context with just a URL
-    and not an Engine, though an Engine is acceptable
-    here as well.  By skipping the Engine creation
-    we don't even need a DBAPI to be available.
-
-    Calls to context.execute() here emit the string given to the
-    script output.
-
+    """
+    Run Alembic migrations using a URL-only configuration (offline mode).
+    
+    Configures the Alembic context with the configured `sqlalchemy.url`, `target_metadata`,
+    `literal_binds=True`, and `dialect_opts={'paramstyle': 'named'}`, then runs migrations
+    inside a transaction.
     """
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
@@ -59,6 +55,12 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection):
+    """
+    Configure the Alembic migration context with the provided database connection and run pending migrations inside a transaction.
+    
+    Parameters:
+        connection: A SQLAlchemy connection or connection-like object to which the Alembic context will be bound for executing migrations.
+    """
     context.configure(connection=connection, target_metadata=target_metadata)
 
     with context.begin_transaction():
@@ -66,11 +68,12 @@ def do_run_migrations(connection):
 
 
 async def run_migrations_online() -> None:
-    """Run migrations in 'online' mode.
-
-    In this scenario we need to create an Engine
-    and associate a connection with the context.
-
+    """
+    Run migrations in "online" mode using an async SQLAlchemy engine.
+    
+    Creates an async engine from the Alembic configuration, opens an asynchronous
+    connection to run migrations within a transactional context, and disposes
+    the engine when complete.
     """
     connectable = async_engine_from_config(
         config.get_section(config.config_ini_section, {}),

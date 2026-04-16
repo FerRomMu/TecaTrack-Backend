@@ -25,8 +25,12 @@ async_session_factory = async_sessionmaker(
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
-    Dependency that provides an asynchronous database session for each request.
-    Ensures that the session is automatically closed after the request is finished.
+    Provide an asynchronous SQLAlchemy session scoped to a single request.
+    
+    Yields an AsyncSession started inside a transactional scope; the session and transaction are finalized when the generator exits.
+    
+    Returns:
+        session (AsyncSession): Active transactional session for use by callers.
     """
     async with async_session_factory() as session:
         async with session.begin():

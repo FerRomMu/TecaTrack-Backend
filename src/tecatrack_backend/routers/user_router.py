@@ -16,10 +16,12 @@ async def get_user_service(
     session: Annotated[AsyncSession, Depends(get_db)],
 ) -> UserService:
     """
-    Constructs a UserService backed by a UserRepository using the provided database session.
-    
+    Constructs a UserService backed by a UserRepository using the provided
+    database session.
+
     Returns:
-        UserService: A service instance configured with a UserRepository that uses the given AsyncSession.
+        UserService: A service instance configured with a UserRepository that uses
+            the given AsyncSession.
     """
     repository = UserRepository(session)
     return UserService(repository)
@@ -32,10 +34,10 @@ async def create_user(
 ) -> UserRead:
     """
     Create a new user from the provided payload.
-    
+
     Parameters:
         user_create (UserCreate): Data required to create the user.
-    
+
     Returns:
         UserRead: The created user representation.
     """
@@ -49,7 +51,7 @@ async def get_user(
 ) -> UserRead:
     """
     Retrieve a user by UUID.
-    
+
     Returns:
         UserRead: The user's data as a `UserRead` model.
     """
@@ -63,10 +65,10 @@ async def get_user_by_email(
 ) -> UserRead:
     """
     Retrieve a user by their email address.
-    
+
     Parameters:
         email (str): Email address of the user to retrieve.
-    
+
     Returns:
         UserRead: The user matching the given email.
     """
@@ -81,11 +83,12 @@ async def update_user(
 ) -> UserRead:
     """
     Apply partial updates to an existing user identified by `user_id`.
-    
+
     Parameters:
         user_id (uuid.UUID): UUID of the user to update.
-        user_update (UserUpdate): Fields to update on the user; only provided fields will be changed.
-    
+        user_update (UserUpdate): Fields to update on the user; only provided fields
+            will be changed.
+
     Returns:
         UserRead: The updated user representation.
     """
@@ -99,7 +102,7 @@ async def delete_user(
 ) -> None:
     """
     Delete the user identified by the given UUID.
-    
+
     Parameters:
         user_id (uuid.UUID): UUID of the user to delete.
     """

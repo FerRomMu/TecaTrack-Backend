@@ -13,9 +13,13 @@ async def test_create_user_api_success(
     async_client: AsyncClient, db_session: AsyncSession
 ):
     """
-    Verifies that POST /users/ creates a user, returns the expected response fields, and persists the user in the database.
-    
-    Sends a POST request with user data, asserts a 201 status and that the response JSON contains the same email and an `id`, converts the returned `id` to a UUID, queries the database for that user, and asserts the record exists with the expected email.
+    Verifies that POST /users/ creates a user, returns the expected response
+    fields, and persists the user in the database.
+
+    Sends a POST request with user data, asserts a 201 status and that the
+    response JSON contains the same email and an `id`, converts the returned `id`
+    to a UUID, queries the database for that user, and asserts the record exists
+    with the expected email.
     """
     user_data = {"email": "api_test@example.com", "full_name": "API Test User"}
 
@@ -54,9 +58,11 @@ async def test_get_user_api_success(
 @pytest.mark.asyncio
 async def test_get_user_api_not_found(async_client: AsyncClient):
     """
-    Verifies that requesting a nonexistent user ID returns a 404 response with the expected error detail.
-    
-    Asserts the GET /users/{id} endpoint responds with HTTP 404 and a JSON body whose "detail" field equals "User not found".
+    Verifies that requesting a nonexistent user ID returns a 404 response with the
+    expected error detail.
+
+    Asserts the GET /users/{id} endpoint responds with HTTP 404 and a JSON body
+    whose "detail" field equals "User not found".
     """
     fake_user_id = str(uuid.uuid4())
 
@@ -69,9 +75,12 @@ async def test_get_user_api_not_found(async_client: AsyncClient):
 @pytest.mark.asyncio
 async def test_create_user_already_exists_api(async_client: AsyncClient):
     """
-    Verifies that attempting to create a user with an email that already exists returns a duplicate error.
-    
-    Sends two POST requests to /users/ with identical user data; the first request must create the user (HTTP 201) and the second must return HTTP 400 with JSON `detail` equal to "User already exists".
+    Verifies that attempting to create a user with an email that already exists
+    returns a duplicate error.
+
+    Sends two POST requests to /users/ with identical user data; the first request
+    must create the user (HTTP 201) and the second must return HTTP 400 with JSON
+    `detail` equal to "User already exists".
     """
     user_data = {"email": "duplicate@example.com", "full_name": "Duplicate"}
 

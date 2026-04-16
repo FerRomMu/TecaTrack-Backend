@@ -26,9 +26,10 @@ async_session_factory = async_sessionmaker(
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
     Provide an asynchronous SQLAlchemy session scoped to a single request.
-    
-    Yields an AsyncSession started inside a transactional scope; the session and transaction are finalized when the generator exits.
-    
+
+    Yields an AsyncSession started inside a transactional scope; the session and
+    transaction are finalized when the generator exits.
+
     Returns:
         session (AsyncSession): Active transactional session for use by callers.
     """

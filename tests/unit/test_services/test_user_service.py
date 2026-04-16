@@ -13,11 +13,14 @@ from tecatrack_backend.services.user_service import UserService
 def mock_repo():
     """
     Create a mocked repository configured with asynchronous user-related methods.
-    
-    The returned MagicMock has coroutine-compatible attributes `get_by_email`, `get_by_id`, and `create` (each an AsyncMock) suitable for injecting into services in async tests.
-    
+
+    The returned MagicMock has coroutine-compatible attributes `get_by_email`,
+    `get_by_id`, and `create` (each an AsyncMock) suitable for injecting into
+    services in async tests.
+
     Returns:
-        MagicMock: A repository mock with `get_by_email`, `get_by_id`, and `create` implemented as AsyncMock.
+        MagicMock: A repository mock with `get_by_email`, `get_by_id`, and `create`
+            implemented as AsyncMock.
     """
     repo = MagicMock()
     repo.get_by_email = AsyncMock()
@@ -30,11 +33,11 @@ def mock_repo():
 def user_service(mock_repo):
     """
     Create a UserService instance configured to use the provided mocked repository.
-    
+
     Parameters:
         mock_repo (MagicMock): Mocked repository object expected to expose async methods
             `get_by_email`, `get_by_id`, and `create`.
-    
+
     Returns:
         UserService: A UserService instance wired to the provided repository mock.
     """

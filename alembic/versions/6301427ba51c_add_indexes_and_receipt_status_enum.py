@@ -76,6 +76,7 @@ def upgrade() -> None:
         unique=False,
     )
 
+
 def downgrade() -> None:
     """
     Revert the schema changes applied by the corresponding upgrade migration.

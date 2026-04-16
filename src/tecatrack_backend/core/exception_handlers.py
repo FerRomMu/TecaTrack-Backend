@@ -7,7 +7,7 @@ from tecatrack_backend.core.exceptions import (
     UserNotFoundError,
 )
 
-EXCEPTION_MAP: dict[type[Exception], tuple[int, str]] = {
+EXCEPTION_MAP: dict[type[TecaTrackError], tuple[int, str]] = {
     UserNotFoundError: (404, "User not found"),
     UserAlreadyExistsError: (400, "User already exists"),
 }
@@ -33,7 +33,7 @@ def domain_exception_handler(request: Request, exc: TecaTrackError) -> JSONRespo
     return JSONResponse(status_code=status_code, content={"detail": msg})
 
 
-def setup_exception_handlers(app: FastAPI):
+async def setup_exception_handlers(app: FastAPI) -> None:
     """
     Register the application's exception handler for domain errors.
 

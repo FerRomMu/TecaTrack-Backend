@@ -2,7 +2,7 @@ from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from tecatrack_backend.config import settings
+from tecatrack_backend.core.config import settings
 
 # Create the async engine
 # echo=True can be useful for debugging SQL queries during development

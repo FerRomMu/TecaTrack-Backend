@@ -1,6 +1,7 @@
 import enum
 import uuid
 from datetime import datetime
+from decimal import Decimal
 
 from sqlalchemy import DateTime, Enum, ForeignKey, Numeric, Text, func
 from sqlalchemy.dialects.postgresql import BYTEA, JSONB, UUID
@@ -44,7 +45,7 @@ class Account(Base):
     )
 
     bank: Mapped[str] = mapped_column(Text, nullable=False)
-    balance: Mapped[Numeric] = mapped_column(Numeric(18, 2), nullable=False)
+    balance: Mapped[Decimal] = mapped_column(Numeric(18, 2), nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -106,7 +107,9 @@ class Receipt(Base):
         Enum(ReceiptStatus, name="receipt_status"), nullable=False
     )
 
-    extracted_data: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    extracted_data: Mapped[dict[str, object] | None] = mapped_column(
+        JSONB, nullable=True
+    )
     ocr_text: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
@@ -142,7 +145,7 @@ class Transaction(Base):
         UUID(as_uuid=True), ForeignKey("accounts.id"), nullable=False, index=True
     )
 
-    amount: Mapped[Numeric] = mapped_column(Numeric(18, 2), nullable=False)
+    amount: Mapped[Decimal] = mapped_column(Numeric(18, 2), nullable=False)
 
     receipt_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("receipts.id"), nullable=True, index=True

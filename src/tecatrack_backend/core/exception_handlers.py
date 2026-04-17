@@ -33,7 +33,7 @@ def domain_exception_handler(request: Request, exc: TecaTrackError) -> JSONRespo
     return JSONResponse(status_code=status_code, content={"detail": msg})
 
 
-async def setup_exception_handlers(app: FastAPI) -> None:
+def setup_exception_handlers(app: FastAPI) -> None:
     """
     Register the application's exception handler for domain errors.
 

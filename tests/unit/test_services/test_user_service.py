@@ -5,7 +5,7 @@ import pytest
 
 from tecatrack_backend.core.exceptions import UserAlreadyExistsError, UserNotFoundError
 from tecatrack_backend.models import User
-from tecatrack_backend.schemas.user import UserCreate
+from tecatrack_backend.schemas.user_schemas import UserCreate
 from tecatrack_backend.services.user_service import UserService
 
 

@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from tecatrack_backend.core.database import get_db
 from tecatrack_backend.repositories.user_repository import UserRepository
-from tecatrack_backend.schemas.user import UserCreate, UserRead, UserUpdate
+from tecatrack_backend.schemas.user_schemas import UserCreate, UserRead, UserUpdate
 from tecatrack_backend.services.user_service import UserService
 
 router = APIRouter(prefix="/users", tags=["Users"])

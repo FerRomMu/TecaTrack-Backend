@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from tecatrack_backend.models import User
-from tecatrack_backend.schemas.user import UserCreate, UserUpdate
+from tecatrack_backend.schemas.user_schemas import UserCreate, UserUpdate
 
 
 class UserRepository:

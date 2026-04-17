@@ -2,10 +2,13 @@ import os
 from collections.abc import AsyncGenerator
 
 import pytest_asyncio
+from alembic.config import Config
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
+from alembic import command
 from tecatrack_backend.core.database import get_db
 from tecatrack_backend.main import app
 from tecatrack_backend.models import Base
@@ -21,24 +24,42 @@ test_async_session_factory = async_sessionmaker(
 )
 
 
+def _get_alembic_config() -> Config:
+    alembic_cfg = Config("alembic.ini")
+    alembic_cfg.set_main_option("sqlalchemy.url", TEST_DATABASE_URL.replace("%", "%%"))
+    return alembic_cfg
+
+
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def setup_test_db():
     """
-    Create the test database schema before the test session and drop it afterward.
+    Bootstrap the test schema running real Alembic migrations and tear it down
+    afterward.
 
-    Before tests, drops all existing tables and recreates them from Base.metadata;
-    after the session, drops all tables and disposes the test engine. The
-    underlying database (e.g., the PostgreSQL database named by
-    TEST_DATABASE_URL) must already exist.
+    This ensures that broken migrations are caught before they ship: if
+    `alembic upgrade head` fails, the fixture explodes and every test fails
+    immediately. After the session, all tables are dropped and the engine is
+    disposed.
     """
+    # Limpia cualquier estado previo
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
-        await conn.run_sync(Base.metadata.create_all)
+        await conn.execute(text("DROP TABLE IF EXISTS alembic_version"))
+
+    # Corre las migraciones reales en vez de create_all
+    def run_migrations(connection):
+        alembic_cfg = _get_alembic_config()
+        alembic_cfg.attributes["connection"] = connection
+        command.upgrade(alembic_cfg, "head")
+
+    async with test_engine.begin() as conn:
+        await conn.run_sync(run_migrations)
 
     yield
 
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+        await conn.execute(text("DROP TABLE IF EXISTS alembic_version"))
 
     await test_engine.dispose()
 
@@ -69,32 +90,9 @@ async def async_client(db_session: AsyncSession):
     """
     Create an httpx AsyncClient for the FastAPI app with the app's `get_db`
     dependency overridden to yield the provided transactional `db_session`.
-
-    The returned client uses ASGITransport to call the FastAPI application
-    directly. Overriding `get_db` ensures request handlers use the same
-    transactional session as the test so that database changes made during
-    requests are visible to the test and rolled back with the test's
-    transaction.
-
-    Parameters:
-        db_session (AsyncSession): Transactional session to be yielded to request
-            handlers.
-
-    Returns:
-        AsyncClient: An httpx AsyncClient configured to send requests to the
-            FastAPI app.
     """
 
     async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
-        """
-        Provide the test's transactional AsyncSession to FastAPI dependencies.
-
-        This async generator yields the AsyncSession bound to the current test
-        transaction so request handlers use the same session as the test.
-
-        Returns:
-            AsyncSession: The session bound to the active test transaction.
-        """
         yield db_session
 
     app.dependency_overrides[get_db] = override_get_db

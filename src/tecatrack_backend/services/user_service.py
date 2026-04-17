@@ -1,5 +1,7 @@
 import uuid
 
+from sqlalchemy.exc import IntegrityError
+
 from tecatrack_backend.core.exceptions import UserAlreadyExistsError, UserNotFoundError
 from tecatrack_backend.models import User
 from tecatrack_backend.repositories.user_repository import UserRepository
@@ -66,12 +68,12 @@ class UserService:
         Raises:
             UserAlreadyExistsError: If a user with the same email already exists.
         """
-        existing_user = await self.repository.get_by_email(user_create.email)
-        if existing_user:
+        try:
+            return await self.repository.create(user_create)
+        except IntegrityError as e:
             raise UserAlreadyExistsError(
                 f"User with email {user_create.email} already exists."
-            )
-        return await self.repository.create(user_create)
+            ) from e
 
     async def update_user(self, user_id: uuid.UUID, user_update: UserUpdate) -> User:
         """
@@ -88,7 +90,10 @@ class UserService:
             UserNotFoundError: If no user exists with the given `user_id`.
         """
         user = await self.get_user(user_id)
-        return await self.repository.update(user, user_update)
+        try:
+            return await self.repository.update(user, user_update)
+        except IntegrityError as exc:
+            raise UserAlreadyExistsError("User with email already exists.") from exc
 
     async def delete_user(self, user_id: uuid.UUID) -> None:
         """

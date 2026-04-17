@@ -46,8 +46,7 @@ def user_service(mock_repo: MagicMock) -> UserService:
 
 @pytest.mark.asyncio
 async def test_create_user_already_exists(
-    user_service: UserService,
-    mock_repo: MagicMock
+    user_service: UserService, mock_repo: MagicMock
 ) -> None:
     user_create = UserCreate(email="test@example.com", full_name="Test User")
     mock_repo.create.side_effect = IntegrityError(None, None, None)
@@ -58,8 +57,7 @@ async def test_create_user_already_exists(
 
 @pytest.mark.asyncio
 async def test_get_user_not_found(
-    user_service: UserService,
-    mock_repo: MagicMock
+    user_service: UserService, mock_repo: MagicMock
 ) -> None:
     user_id = uuid.uuid4()
     mock_repo.get_by_id.return_value = None

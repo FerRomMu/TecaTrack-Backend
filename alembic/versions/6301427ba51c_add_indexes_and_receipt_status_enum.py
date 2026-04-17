@@ -11,7 +11,6 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    # Crear el enum con op.execute() en vez de op.get_bind()
     op.execute("CREATE TYPE receipt_status AS ENUM ('PENDING', 'PROCESSED', 'FAILED')")
 
     op.create_index(op.f("ix_accounts_user_id"), "accounts", ["user_id"], unique=False)

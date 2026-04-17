@@ -31,7 +31,7 @@ def _get_alembic_config() -> Config:
 
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
-async def setup_test_db():
+async def setup_test_db() -> None:
     """
     Bootstrap the test schema running real Alembic migrations and tear it down
     afterward.
@@ -41,13 +41,12 @@ async def setup_test_db():
     immediately. After the session, all tables are dropped and the engine is
     disposed.
     """
-    # Limpia cualquier estado previo
+
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.execute(text("DROP TABLE IF EXISTS alembic_version"))
 
-    # Corre las migraciones reales en vez de create_all
-    def run_migrations(connection):
+    def run_migrations(connection) -> None:
         alembic_cfg = _get_alembic_config()
         alembic_cfg.attributes["connection"] = connection
         command.upgrade(alembic_cfg, "head")
@@ -75,18 +74,21 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
         test completes, ensuring test isolation without recreating the schema.
     """
     async with test_engine.connect() as conn:
-        await conn.begin()
-        async_session = AsyncSession(bind=conn, expire_on_commit=False)
-
+        outer_tx = await conn.begin()
+        async_session = AsyncSession(
+            bind=conn,
+            expire_on_commit=False,
+            join_transaction_mode="create_savepoint",
+        )
         try:
             yield async_session
         finally:
             await async_session.close()
-            await conn.rollback()
+            await outer_tx.rollback()
 
 
 @pytest_asyncio.fixture
-async def async_client(db_session: AsyncSession):
+async def async_client(db_session: AsyncSession) -> AsyncClient:
     """
     Create an httpx AsyncClient for the FastAPI app with the app's `get_db`
     dependency overridden to yield the provided transactional `db_session`.
@@ -95,6 +97,7 @@ async def async_client(db_session: AsyncSession):
     async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
         yield db_session
 
+    previous_override = app.dependency_overrides.get(get_db)
     app.dependency_overrides[get_db] = override_get_db
 
     async with AsyncClient(
@@ -102,4 +105,7 @@ async def async_client(db_session: AsyncSession):
     ) as ac:
         yield ac
 
-    app.dependency_overrides.clear()
+    if previous_override is None:
+        app.dependency_overrides.pop(get_db, None)
+    else:
+        app.dependency_overrides[get_db] = previous_override

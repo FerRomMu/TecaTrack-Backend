@@ -73,9 +73,7 @@ async def test_get_user_api_not_found(async_client: AsyncClient) -> None:
 
 
 @pytest.mark.asyncio
-async def test_create_user_already_exists_api(
-    async_client: AsyncClient
-) -> None:
+async def test_create_user_already_exists_api(async_client: AsyncClient) -> None:
     """
     Verifies that attempting to create a user with an email that already exists
     returns a duplicate error.

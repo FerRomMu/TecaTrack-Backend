@@ -11,7 +11,7 @@ from tecatrack_backend.models import User
 @pytest.mark.asyncio
 async def test_create_user_api_success(
     async_client: AsyncClient, db_session: AsyncSession
-):
+) -> None:
     """
     Verifies that POST /users/ creates a user, returns the expected response
     fields, and persists the user in the database.
@@ -42,7 +42,7 @@ async def test_create_user_api_success(
 @pytest.mark.asyncio
 async def test_get_user_api_success(
     async_client: AsyncClient, db_session: AsyncSession
-):
+) -> None:
     # First, let's create a user to fetch
     user_data = {"email": "fetch_me@example.com", "full_name": "Fetch Test"}
     create_response = await async_client.post("/users/", json=user_data)
@@ -56,7 +56,7 @@ async def test_get_user_api_success(
 
 
 @pytest.mark.asyncio
-async def test_get_user_api_not_found(async_client: AsyncClient):
+async def test_get_user_api_not_found(async_client: AsyncClient) -> None:
     """
     Verifies that requesting a nonexistent user ID returns a 404 response with the
     expected error detail.
@@ -73,7 +73,9 @@ async def test_get_user_api_not_found(async_client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_create_user_already_exists_api(async_client: AsyncClient):
+async def test_create_user_already_exists_api(
+    async_client: AsyncClient
+) -> None:
     """
     Verifies that attempting to create a user with an email that already exists
     returns a duplicate error.

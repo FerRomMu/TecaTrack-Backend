@@ -83,16 +83,15 @@ async def get_account_by_cbu(
 async def get_account_by_user_id(
     user_id: uuid.UUID,
     service: Annotated[AccountService, Depends(get_account_service)],
-) -> AccountRead:
+) -> AccountsResponse:
     """
-    Retrieve all accounts belonging to the specified user.
+    Retrieve all accounts for a user.
 
     Parameters:
-        user_id (uuid.UUID): UUID of the user whose accounts will be retrieved.
+        user_id (uuid.UUID): UUID of the user.
 
     Returns:
-        AccountsResponse: Object containing `accounts` (list of AccountRead) and
-        `total_balance` (sum of balances across those accounts).
+        AccountsResponse: All accounts for the user with total balance.
     """
     accounts, total_balance = await service.get_all_accounts_by_user_id(user_id)
     return AccountsResponse(accounts=accounts, total_balance=total_balance)

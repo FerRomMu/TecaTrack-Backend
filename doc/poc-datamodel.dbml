@@ -26,13 +26,19 @@ Table files {
   created_at timestamptz
 }
 
+Enum receipt_status {
+  PENDING
+  PROCESSED
+  FAILED
+}
+
 Table receipts {
   id uuid [pk]
   user_id uuid [not null, ref: > users.id]
 
   file_id uuid [not null, ref: > files.id]
 
-  status text [not null]         // UPLOADED | PROCESSED | FAILED
+  status receipt_status [not null]
 
   extracted_data jsonb
   ocr_text text

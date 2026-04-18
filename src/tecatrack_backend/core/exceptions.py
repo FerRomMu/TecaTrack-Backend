@@ -38,3 +38,20 @@ class EntityAlreadyExistsError(TecaTrackError):
             exists."
         """
         super().__init__(f"{entity_name} with identifier {identifier} already exists.")
+
+
+class InvalidEntityError(TecaTrackError):
+    def __init__(self, entity_name: str, field_name: str):
+        """
+        Initialize an exception indicating that an entity with the given identifier
+        already exists.
+
+        Parameters:
+            entity_name (str): Name of the entity type (e.g., "User").
+            field_name (str): The field name of the existing entity.
+
+        Details:
+            Stores `entity_name` and `field_name` as instance attributes and sets the
+            exception message to "<entity_name> with invalid {field_name}".
+        """
+        super().__init__(f"{entity_name} with invalid {field_name}")

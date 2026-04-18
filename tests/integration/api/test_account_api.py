@@ -54,6 +54,35 @@ async def test_create_account_api_success(
     assert db_account.bank == account_data["bank"]
     assert db_account.balance == Decimal("100.50")
 
+@pytest.mark.asyncio
+async def test_create_account_invalid_cbu_api(
+    async_client: AsyncClient
+) -> None:
+    """
+    Integration test that verifies the accounts API rejects accounts with invalid CBUs.
+
+    Creates a user, attempts to create an account with an invalid CBU (too short),
+    asserts the HTTP response is 400 and contains `detail` message about invalid CBU.
+    """
+    user_data = {"email": "invalid_cbu_owner@example.com", "full_name": "Invalid CBU Owner"}
+    user_res = await async_client.post("/users/", json=user_data)
+    assert user_res.status_code == 201
+    user_id = user_res.json()["id"]
+
+    # 2. Create the account with invalid CBU
+    account_data = {
+        "bank": "Teca Bank",
+        "balance": "100.50",
+        "cbu": "123456789012345678901",
+        "user_id": user_id,
+    }
+
+    response = await async_client.post("/accounts/", json=account_data)
+
+    # 3. Verify response
+    assert response.status_code == 400
+    data = response.json()
+    assert "Invalid entity structure" in data["detail"]
 
 @pytest.mark.asyncio
 async def test_create_account_duplicate_cbu_api(async_client: AsyncClient) -> None:
@@ -86,6 +115,24 @@ async def test_create_account_duplicate_cbu_api(async_client: AsyncClient) -> No
     assert res2.status_code == 400
     assert "already exists" in res2.json()["detail"].lower()
 
+@pytest.mark.asyncio
+async def test_create_account_non_existent_user_api(async_client: AsyncClient) -> None:
+    """
+    Verifies that creating an account with a non-existent user is rejected.
+
+    Attempts to create an account with a non-existent user and asserts the API
+    responds with HTTP 404 and a `detail` message containing "not found".
+    """
+    account_data = {
+        "bank": "Teca Bank",
+        "balance": "0.00",
+        "cbu": "9999999999999999999999",
+        "user_id": str(uuid.uuid4()),
+    }
+
+    response = await async_client.post("/accounts/", json=account_data)
+    assert response.status_code == 404
+    assert "not found" in response.json()["detail"].lower()
 
 @pytest.mark.asyncio
 async def test_get_account_api_success(async_client: AsyncClient) -> None:

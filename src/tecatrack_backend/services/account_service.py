@@ -1,3 +1,4 @@
+from tecatrack_backend.core.exceptions import InvalidEntityError
 import uuid
 from decimal import Decimal
 
@@ -13,7 +14,7 @@ from tecatrack_backend.schemas.account_schemas import AccountCreate
 
 
 class AccountService:
-    def __init__(self, repository: AccountRepository):
+    def __init__(self, repository: AccountRepository) -> None:
         """
         Initialize the AccountService with a AccountRepository.
 
@@ -83,7 +84,7 @@ class AccountService:
 
         Parameters:
             account_create (AccountCreate): Creation payload containing at least `cbu`,
-            `name`, and `user_id`.
+            `bank`, and `user_id`.
 
         Returns:
             Account: The created account.
@@ -94,4 +95,22 @@ class AccountService:
         try:
             return await self.repository.create(account_create)
         except IntegrityError as e:
-            raise EntityAlreadyExistsError("Account", str(account_create.cbu)) from e
+        # Get the underlying asyncpg error code
+            # sqlalchemy wraps the original error in .orig
+            pg_code = getattr(e.orig, "sqlstate", None)
+
+            # 23505 = Unique Violation
+            if pg_code == "23505":
+                if "cbu" in str(e.orig).lower():
+                    raise EntityAlreadyExistsError("Account", str(account_create.cbu)) from e
+            
+            # 23503 = Foreign Key Violation
+            elif pg_code == "23503":
+                raise EntityNotFoundError("User", str(account_create.user_id)) from e
+                
+            # 23514 = Check Violation
+            elif pg_code == "23514":
+                if "cbu" in str(e.orig).lower():
+                    raise InvalidEntityError("Account", "cbu") from e
+
+            raise e

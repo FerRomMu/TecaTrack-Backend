@@ -11,7 +11,8 @@ Table accounts {
 
   bank text [not null]
   balance numeric [not null]
-
+  cbu varchar(22) [not null]
+  
   created_at timestamptz
   updated_at timestamptz
 }

@@ -57,6 +57,18 @@ class AccountService:
             raise EntityNotFoundError("Account", cbu)
         return account
 
+    async def get_all_accounts_by_owner_id(self, owner_id: uuid.UUID) -> list[Account]:
+        """
+        Retrieve all accounts for a specific owner.
+
+        Parameters:
+            owner_id (uuid.UUID): The UUID of the owner.
+
+        Returns:
+            list[Account]: A list of all accounts belonging to the owner.
+        """
+        return await self.repository.get_by_owner_id(owner_id)
+
     async def create_account(self, account_create: AccountCreate) -> Account:
         """
         Create a new account from the provided creation data.

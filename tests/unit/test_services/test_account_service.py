@@ -33,21 +33,38 @@ def mock_repo() -> MagicMock:
     repo.get_all_by_user_id = AsyncMock()
     return repo
 
+@pytest.fixture
+def mock_user_repo() -> MagicMock:
+    """
+    Create a mocked repository configured with asynchronous user-related methods.
+
+    The returned MagicMock has coroutine-compatible attributes `get_by_id` (an
+    AsyncMock) suitable for injecting into services in async tests.
+
+    Returns:
+        MagicMock: A repository mock with `get_by_id` implemented as AsyncMock.
+    """
+    repo = MagicMock()
+    repo.get_by_id = AsyncMock()
+    return repo
+
 
 @pytest.fixture
-def account_service(mock_repo: MagicMock) -> AccountService:
+def account_service(mock_repo: MagicMock, mock_user_repo: MagicMock) -> AccountService:
     """
-    Constructs an AccountService configured to use the provided mocked repository.
+    Constructs an AccountService configured to use the provided mocked repositories.
 
     Parameters:
         mock_repo (MagicMock): Mock repository expected to provide coroutine-compatible
         async methods `get_by_cbu`, `get_by_id`, `create`, and `get_all_by_user_id`.
+        mock_user_repo (MagicMock): Mock repository expected to provide
+        coroutine-compatible async methods `get_by_id`.
 
     Returns:
         AccountService: An AccountService instance wired to the provided repository
         mock.
     """
-    return AccountService(mock_repo)
+    return AccountService(mock_repo, mock_user_repo)
 
 
 @pytest.mark.asyncio

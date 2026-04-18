@@ -9,18 +9,21 @@ from tecatrack_backend.core.exceptions import (
     InvalidEntityError,
 )
 from tecatrack_backend.models import Account
-from tecatrack_backend.repositories.account_repository import AccountRepository
+from tecatrack_backend.repositories import AccountRepository, UserRepository
 from tecatrack_backend.schemas.account_schemas import AccountCreate
 
 
 class AccountService:
-    def __init__(self, repository: AccountRepository) -> None:
+    def __init__(
+        self, repository: AccountRepository, user_repository: UserRepository
+    ) -> None:
         """
         Initialize the AccountService with a AccountRepository.
 
         The provided repository is used to perform persistence operations for
         account-related actions.
         """
+        self.user_repository = user_repository
         self.repository = repository
 
     async def get_account(self, account_id: uuid.UUID) -> Account:
@@ -74,6 +77,9 @@ class AccountService:
             of the user's accounts and the second element is the sum of those
             accounts' balances.
         """
+        user = await self.user_repository.get_by_id(user_id)
+        if not user:
+            raise EntityNotFoundError("User", str(user_id))
         accounts: list[Account] = await self.repository.get_all_by_user_id(user_id)
         total_balance = sum((account.balance for account in accounts), Decimal("0"))
         return accounts, total_balance

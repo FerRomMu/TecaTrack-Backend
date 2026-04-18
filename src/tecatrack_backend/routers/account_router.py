@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from tecatrack_backend.core.database import get_db
+from tecatrack_backend.repositories import UserRepository
 from tecatrack_backend.repositories.account_repository import AccountRepository
 from tecatrack_backend.schemas.account_schemas import (
     AccountCreate,
@@ -31,7 +32,8 @@ async def get_account_service(
         `session`.
     """
     repository = AccountRepository(session)
-    return AccountService(repository)
+    user_repository = UserRepository(session)
+    return AccountService(repository, user_repository)
 
 
 @router.post("/", response_model=AccountRead, status_code=status.HTTP_201_CREATED)

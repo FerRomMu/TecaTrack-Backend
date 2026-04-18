@@ -2,14 +2,19 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from tecatrack_backend.core.exceptions import (
+    EntityAlreadyExistsError,
+    EntityNotFoundError,
+    InvalidEntityError,
     TecaTrackError,
-    UserAlreadyExistsError,
-    UserNotFoundError,
 )
 
 EXCEPTION_MAP: dict[type[TecaTrackError], tuple[int, str]] = {
-    UserNotFoundError: (404, "User not found"),
-    UserAlreadyExistsError: (400, "User already exists"),
+    EntityNotFoundError: (404, "Entity not found"),
+    EntityAlreadyExistsError: (
+        400,
+        "Entity already exists",
+    ),
+    InvalidEntityError: (400, "Invalid entity structure"),
 }
 
 

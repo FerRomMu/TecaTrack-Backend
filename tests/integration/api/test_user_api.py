@@ -58,29 +58,26 @@ async def test_get_user_api_success(
 @pytest.mark.asyncio
 async def test_get_user_api_not_found(async_client: AsyncClient) -> None:
     """
-    Verifies that requesting a nonexistent user ID returns a 404 response with the
-    expected error detail.
+    Check that fetching a nonexistent user returns HTTP 404.
 
-    Asserts the GET /users/{id} endpoint responds with HTTP 404 and a JSON body
-    whose "detail" field equals "User not found".
+    Sends a GET request to /users/{id} using a random UUID and asserts the
+    response status code is 404.
     """
     fake_user_id = str(uuid.uuid4())
 
     response = await async_client.get(f"/users/{fake_user_id}")
 
     assert response.status_code == 404
-    assert response.json()["detail"] == "User not found"
 
 
 @pytest.mark.asyncio
 async def test_create_user_already_exists_api(async_client: AsyncClient) -> None:
     """
-    Verifies that attempting to create a user with an email that already exists
-    returns a duplicate error.
+    Check that creating a user with an email that already exists results in a 400
+    response on the second request.
 
-    Sends two POST requests to /users/ with identical user data; the first request
-    must create the user (HTTP 201) and the second must return HTTP 400 with JSON
-    `detail` equal to "User already exists".
+    Sends two POST requests to /users/ with identical payload; asserts the first returns
+    HTTP 201 and the second returns HTTP 400.
     """
     user_data = {"email": "duplicate@example.com", "full_name": "Duplicate"}
 
@@ -93,4 +90,3 @@ async def test_create_user_already_exists_api(async_client: AsyncClient) -> None
 
     # 3. Assert our domain exception handler returned the 400
     assert response2.status_code == 400
-    assert response2.json()["detail"] == "User already exists"

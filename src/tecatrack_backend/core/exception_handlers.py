@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
@@ -5,11 +7,17 @@ from tecatrack_backend.core.exceptions import (
     TecaTrackError,
     UserAlreadyExistsError,
     UserNotFoundError,
+    OCRProcessingError,
+    InvalidFileFormatError,
 )
+
+logger = logging.getLogger(__name__)
 
 EXCEPTION_MAP: dict[type[TecaTrackError], tuple[int, str]] = {
     UserNotFoundError: (404, "User not found"),
     UserAlreadyExistsError: (400, "User already exists"),
+    InvalidFileFormatError: (422, "Unsupported file format"),
+    OCRProcessingError: (500, "OCR processing failed"),
 }
 
 
@@ -30,6 +38,10 @@ def domain_exception_handler(request: Request, exc: TecaTrackError) -> JSONRespo
             body `{"detail": <message>}`.
     """
     status_code, msg = EXCEPTION_MAP.get(type(exc), (500, "Internal domain error"))
+    if status_code == 500:
+        logger.exception("Unhandled domain error: %s", exc)
+    else:
+        logger.warning("Domain error [%s]: %s", exc.__class__.__name__, exc)
     return JSONResponse(status_code=status_code, content={"detail": msg})
 
 

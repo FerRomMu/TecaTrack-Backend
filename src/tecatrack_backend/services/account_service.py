@@ -69,12 +69,12 @@ class AccountService:
             user_id (uuid.UUID): The UUID of the user whose accounts are requested.
 
         Returns:
-            (list[Account], Decimal): A tuple where the first element is the list of the
+            tuple[list[Account], Decimal]: A tuple where the first element is the list of the
             user's accounts and the second element is the sum of those accounts'
             balances.
         """
         accounts: list[Account] = await self.repository.get_all_by_user_id(user_id)
-        total_balance = sum(account.balance for account in accounts)
+        total_balance = sum((account.balance for account in accounts), Decimal("0"))
         return accounts, total_balance
 
     async def create_account(self, account_create: AccountCreate) -> Account:

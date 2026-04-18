@@ -9,7 +9,7 @@ class AccountBase(BaseModel):
     bank: str
     balance: Decimal
     cbu: str
-
+    user_id: uuid.UUID
 
 class AccountCreate(AccountBase):
     pass

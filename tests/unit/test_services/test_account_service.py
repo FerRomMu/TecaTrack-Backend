@@ -1,4 +1,5 @@
 import uuid
+from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -92,7 +93,6 @@ async def test_get_all_accounts_by_user_id_success(
     account_service: AccountService, mock_repo: MagicMock
 ) -> None:
     user_id = uuid.uuid4()
-    from decimal import Decimal
 
     mock_account_1 = MagicMock(balance=Decimal("100.50"))
     mock_account_2 = MagicMock(balance=Decimal("50.00"))
@@ -102,4 +102,17 @@ async def test_get_all_accounts_by_user_id_success(
 
     assert len(accounts) == 2
     assert total_balance == Decimal("150.50")
+    mock_repo.get_all_by_user_id.assert_awaited_once_with(user_id)
+
+@pytest.mark.asyncio
+async def test_get_all_accounts_by_user_id_empty(
+    account_service: AccountService, mock_repo: MagicMock
+) -> None:
+    user_id = uuid.uuid4()
+    mock_repo.get_all_by_user_id.return_value = []
+
+    accounts, total_balance = await account_service.get_all_accounts_by_user_id(user_id)
+
+    assert len(accounts) == 0
+    assert total_balance == Decimal("0")
     mock_repo.get_all_by_user_id.assert_awaited_once_with(user_id)

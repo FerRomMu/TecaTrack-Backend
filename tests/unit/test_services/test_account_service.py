@@ -33,6 +33,7 @@ def mock_repo() -> MagicMock:
     repo.get_all_by_user_id = AsyncMock()
     return repo
 
+
 @pytest.fixture
 def mock_user_repo() -> MagicMock:
     """

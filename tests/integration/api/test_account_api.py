@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from tecatrack_backend.models import Account
 
+
 # test_create_account_api_success
 @pytest.mark.asyncio
 async def test_create_account_api_success(
@@ -287,14 +288,17 @@ async def test_get_accounts_by_user_api_not_found(async_client: AsyncClient) -> 
     assert response.status_code == 404
     assert "not found" in response.json()["detail"].lower()
 
+
 # test_get_accounts_by_user_with_no_accounts
 @pytest.mark.asyncio
 async def test_get_accounts_by_user_with_no_accounts(async_client: AsyncClient) -> None:
     """
-    Verify that fetching accounts for a user with no accounts returns an empty list and zero total balance.
+    Verify that fetching accounts for a user with no accounts returns an empty list and
+    zero total balance.
 
-    Creates a user with no accounts, calls GET /accounts/user/{user_id}, and asserts the response status is 200,
-    the accounts list is empty, and `total_balance` equals "0.00".
+    Creates a user with no accounts, calls GET /accounts/user/{user_id}, and asserts the
+    response status is 200, the accounts list is empty, and `total_balance` equals
+    "0.00".
     """
     user_res = await async_client.post(
         "/users/", json={"email": "no_accs@ex.com", "full_name": "No Accs"}

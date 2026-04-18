@@ -16,7 +16,9 @@ def test_user_not_found_returns_404() -> None:
 
 
 def test_user_already_exists_returns_400() -> None:
-    response = domain_exception_handler(mock_request, EntityAlreadyExistsError("User", "1"))
+    response = domain_exception_handler(
+        mock_request, EntityAlreadyExistsError("User", "1")
+    )
     assert response.status_code == 400
 
 

@@ -8,7 +8,7 @@ class TecaTrackError(Exception):
 
 
 class EntityNotFoundError(TecaTrackError):
-    def __init__(self, entity_name: str, identifier: uuid):
+    def __init__(self, entity_name: str, identifier: str):
         self.entity_name = entity_name
         self.identifier = identifier
         super().__init__(f"{entity_name} with identifier {identifier} not found.")

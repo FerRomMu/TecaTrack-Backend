@@ -4,12 +4,12 @@ from datetime import datetime
 from decimal import Decimal
 
 from sqlalchemy import (
+    CHAR,
     CheckConstraint,
     DateTime,
     Enum,
     ForeignKey,
     Numeric,
-    String,
     Text,
     func,
 )
@@ -55,7 +55,7 @@ class Account(Base):
 
     bank: Mapped[str] = mapped_column(Text, nullable=False)
     balance: Mapped[Decimal] = mapped_column(Numeric(18, 2), nullable=False)
-    cbu: Mapped[str] = mapped_column(String(22), nullable=False)
+    cbu: Mapped[str] = mapped_column(CHAR(22), unique=True, nullable=False)
     __table_args__ = (CheckConstraint("cbu ~ '^[0-9]{22}$'", name="ck_cbu_format"),)
 
     created_at: Mapped[datetime] = mapped_column(

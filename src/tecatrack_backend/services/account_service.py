@@ -1,4 +1,3 @@
-from tecatrack_backend.core.exceptions import InvalidEntityError
 import uuid
 from decimal import Decimal
 
@@ -7,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from tecatrack_backend.core.exceptions import (
     EntityAlreadyExistsError,
     EntityNotFoundError,
+    InvalidEntityError,
 )
 from tecatrack_backend.models import Account
 from tecatrack_backend.repositories.account_repository import AccountRepository
@@ -70,9 +70,9 @@ class AccountService:
             user_id (uuid.UUID): The UUID of the user whose accounts are requested.
 
         Returns:
-            tuple[list[Account], Decimal]: A tuple where the first element is the list of the
-            user's accounts and the second element is the sum of those accounts'
-            balances.
+            tuple[list[Account], Decimal]: A tuple where the first element is the list
+            of the user's accounts and the second element is the sum of those
+            accounts' balances.
         """
         accounts: list[Account] = await self.repository.get_all_by_user_id(user_id)
         total_balance = sum((account.balance for account in accounts), Decimal("0"))
@@ -95,19 +95,21 @@ class AccountService:
         try:
             return await self.repository.create(account_create)
         except IntegrityError as e:
-        # Get the underlying asyncpg error code
+            # Get the underlying asyncpg error code
             # sqlalchemy wraps the original error in .orig
             pg_code = getattr(e.orig, "sqlstate", None)
 
             # 23505 = Unique Violation
             if pg_code == "23505":
                 if "cbu" in str(e.orig).lower():
-                    raise EntityAlreadyExistsError("Account", str(account_create.cbu)) from e
-            
+                    raise EntityAlreadyExistsError(
+                        "Account", str(account_create.cbu)
+                    ) from e
+
             # 23503 = Foreign Key Violation
             elif pg_code == "23503":
                 raise EntityNotFoundError("User", str(account_create.user_id)) from e
-                
+
             # 23514 = Check Violation
             elif pg_code == "23514":
                 if "cbu" in str(e.orig).lower():

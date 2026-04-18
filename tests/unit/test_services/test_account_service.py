@@ -65,20 +65,20 @@ async def test_create_account_already_exists(
     # 2. Create a mock for the 'orig' exception that SQLAlchemy wraps
     # We give it a .sqlstate so the Service logic can identify it
     mock_orig = MagicMock()
-    mock_orig.sqlstate = "23505" 
-    mock_orig.__str__.return_value = 'duplicate key value violates unique constraint "uq_accounts_cbu"'
+    mock_orig.sqlstate = "23505"
+    mock_orig.__str__.return_value = (
+        'duplicate key value violates unique constraint "uq_accounts_cbu"'
+    )
 
     # 3. Inject the error into the mock repository
     mock_repo.create.side_effect = IntegrityError(
-        statement="INSERT...", 
-        params={}, 
-        orig=mock_orig
+        statement="INSERT...", params={}, orig=mock_orig
     )
 
     # 4. Assert that the Service translates it to the Domain Exception
     with pytest.raises(EntityAlreadyExistsError) as exc_info:
         await account_service.create_account(account_create)
-    
+
     assert "Account" in str(exc_info.value)
     assert "1234567890123456789012" in str(exc_info.value)
 
@@ -120,6 +120,7 @@ async def test_get_all_accounts_by_user_id_success(
     assert len(accounts) == 2
     assert total_balance == Decimal("150.50")
     mock_repo.get_all_by_user_id.assert_awaited_once_with(user_id)
+
 
 @pytest.mark.asyncio
 async def test_get_all_accounts_by_user_id_empty(

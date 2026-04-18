@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from tecatrack_backend.models import Account
 
-
+# test_create_account_api_success
 @pytest.mark.asyncio
 async def test_create_account_api_success(
     async_client: AsyncClient, db_session: AsyncSession
@@ -54,17 +54,20 @@ async def test_create_account_api_success(
     assert db_account.bank == account_data["bank"]
     assert db_account.balance == Decimal("100.50")
 
+
+# test_create_account_invalid_cbu_api
 @pytest.mark.asyncio
-async def test_create_account_invalid_cbu_api(
-    async_client: AsyncClient
-) -> None:
+async def test_create_account_invalid_cbu_api(async_client: AsyncClient) -> None:
     """
     Integration test that verifies the accounts API rejects accounts with invalid CBUs.
 
     Creates a user, attempts to create an account with an invalid CBU (too short),
     asserts the HTTP response is 400 and contains `detail` message about invalid CBU.
     """
-    user_data = {"email": "invalid_cbu_owner@example.com", "full_name": "Invalid CBU Owner"}
+    user_data = {
+        "email": "invalid_cbu_owner@example.com",
+        "full_name": "Invalid CBU Owner",
+    }
     user_res = await async_client.post("/users/", json=user_data)
     assert user_res.status_code == 201
     user_id = user_res.json()["id"]
@@ -84,6 +87,8 @@ async def test_create_account_invalid_cbu_api(
     data = response.json()
     assert "Invalid entity structure" in data["detail"]
 
+
+# test_create_account_duplicate_cbu_api
 @pytest.mark.asyncio
 async def test_create_account_duplicate_cbu_api(async_client: AsyncClient) -> None:
     # 1. Create a user
@@ -115,6 +120,8 @@ async def test_create_account_duplicate_cbu_api(async_client: AsyncClient) -> No
     assert res2.status_code == 400
     assert "already exists" in res2.json()["detail"].lower()
 
+
+# test_create_account_non_existent_user_api
 @pytest.mark.asyncio
 async def test_create_account_non_existent_user_api(async_client: AsyncClient) -> None:
     """
@@ -134,6 +141,8 @@ async def test_create_account_non_existent_user_api(async_client: AsyncClient) -
     assert response.status_code == 404
     assert "not found" in response.json()["detail"].lower()
 
+
+# test_get_account_api_success
 @pytest.mark.asyncio
 async def test_get_account_api_success(async_client: AsyncClient) -> None:
     # 1. Create user and account
@@ -164,6 +173,7 @@ async def test_get_account_api_success(async_client: AsyncClient) -> None:
     assert response.json()["cbu"] == acc_data["cbu"]
 
 
+# test_get_account_api_not_found
 @pytest.mark.asyncio
 async def test_get_account_api_not_found(async_client: AsyncClient) -> None:
     fake_id = str(uuid.uuid4())
@@ -171,6 +181,7 @@ async def test_get_account_api_not_found(async_client: AsyncClient) -> None:
     assert response.status_code == 404
 
 
+# test_get_account_by_cbu_api_success
 @pytest.mark.asyncio
 async def test_get_account_by_cbu_api_success(async_client: AsyncClient) -> None:
     # 1. Create user and account
@@ -199,6 +210,23 @@ async def test_get_account_by_cbu_api_success(async_client: AsyncClient) -> None
     assert response.json()["bank"] == "CBU Bank"
 
 
+# test_get_account_by_cbu_api_not_found
+@pytest.mark.asyncio
+async def test_get_account_by_cbu_api_not_found(async_client: AsyncClient) -> None:
+    """
+    Verify that fetching an account by a non-existent CBU returns HTTP 404.
+
+    Attempts to retrieve an account using a CBU that does not exist in the
+    database and asserts the API responds with status 404 and a `detail`
+    message containing "not found".
+    """
+    fake_cbu = "9999999999999999999999"
+    response = await async_client.get(f"/accounts/cbu/{fake_cbu}")
+    assert response.status_code == 404
+    assert "not found" in response.json()["detail"].lower()
+
+
+# test_get_accounts_by_user_api_success
 @pytest.mark.asyncio
 async def test_get_accounts_by_user_api_success(async_client: AsyncClient) -> None:
     # 1. Create user
@@ -243,3 +271,39 @@ async def test_get_accounts_by_user_api_success(async_client: AsyncClient) -> No
 
     assert len(data["accounts"]) == 2
     assert data["total_balance"] == "300.50"
+
+
+# test_get_accounts_by_user_api_not_found
+@pytest.mark.asyncio
+async def test_get_accounts_by_user_api_not_found(async_client: AsyncClient) -> None:
+    """
+    Verify that fetching accounts for a non-existent user returns HTTP 404.
+
+    Attempts to retrieve accounts for a non-existent user and asserts the API
+    responds with status 404 and a `detail` message containing "not found".
+    """
+    fake_user_id = str(uuid.uuid4())
+    response = await async_client.get(f"/accounts/user/{fake_user_id}")
+    assert response.status_code == 404
+    assert "not found" in response.json()["detail"].lower()
+
+# test_get_accounts_by_user_with_no_accounts
+@pytest.mark.asyncio
+async def test_get_accounts_by_user_with_no_accounts(async_client: AsyncClient) -> None:
+    """
+    Verify that fetching accounts for a user with no accounts returns an empty list and zero total balance.
+
+    Creates a user with no accounts, calls GET /accounts/user/{user_id}, and asserts the response status is 200,
+    the accounts list is empty, and `total_balance` equals "0.00".
+    """
+    user_res = await async_client.post(
+        "/users/", json={"email": "no_accs@ex.com", "full_name": "No Accs"}
+    )
+    user_id = user_res.json()["id"]
+
+    response = await async_client.get(f"/accounts/user/{user_id}")
+    assert response.status_code == 200
+    data = response.json()
+
+    assert len(data["accounts"]) == 0
+    assert data["total_balance"] == "0.00"

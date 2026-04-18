@@ -10,7 +10,8 @@ from tecatrack_backend.core.exceptions import (
 EXCEPTION_MAP: dict[type[TecaTrackError], tuple[int, str]] = {
     EntityNotFoundError: (404, "{entity_name} with identifier {identifier} not found"),
     EntityAlreadyExistsError: (
-        400, "{entity_name} with identifier {identifier} already exists"
+        400,
+        "{entity_name} with identifier {identifier} already exists",
     ),
 }
 

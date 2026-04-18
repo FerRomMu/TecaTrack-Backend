@@ -59,8 +59,9 @@ async def test_get_user_api_success(
 async def test_get_user_api_not_found(async_client: AsyncClient) -> None:
     """
     Check that fetching a nonexistent user returns HTTP 404.
-    
-    Sends a GET request to /users/{id} using a random UUID and asserts the response status code is 404.
+
+    Sends a GET request to /users/{id} using a random UUID and asserts the
+    response status code is 404.
     """
     fake_user_id = str(uuid.uuid4())
 
@@ -72,9 +73,11 @@ async def test_get_user_api_not_found(async_client: AsyncClient) -> None:
 @pytest.mark.asyncio
 async def test_create_user_already_exists_api(async_client: AsyncClient) -> None:
     """
-    Check that creating a user with an email that already exists results in a 400 response on the second request.
-    
-    Sends two POST requests to /users/ with identical payload; asserts the first returns HTTP 201 and the second returns HTTP 400.
+    Check that creating a user with an email that already exists results in a 400
+    response on the second request.
+
+    Sends two POST requests to /users/ with identical payload; asserts the first returns
+    HTTP 201 and the second returns HTTP 400.
     """
     user_data = {"email": "duplicate@example.com", "full_name": "Duplicate"}
 

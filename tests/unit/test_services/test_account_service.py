@@ -37,13 +37,14 @@ def mock_repo() -> MagicMock:
 def account_service(mock_repo: MagicMock) -> AccountService:
     """
     Constructs an AccountService configured to use the provided mocked repository.
-    
+
     Parameters:
-        mock_repo (MagicMock): Mock repository expected to provide coroutine-compatible async methods
-            `get_by_cbu`, `get_by_id`, `create`, and `get_all_by_user_id`.
-    
+        mock_repo (MagicMock): Mock repository expected to provide coroutine-compatible
+        async methods `get_by_cbu`, `get_by_id`, `create`, and `get_all_by_user_id`.
+
     Returns:
-        AccountService: An AccountService instance wired to the provided repository mock.
+        AccountService: An AccountService instance wired to the provided repository
+        mock.
     """
     return AccountService(mock_repo)
 
@@ -56,7 +57,7 @@ async def test_create_account_already_exists(
         cbu="1234567890123456789012",
         user_id=uuid.uuid4(),
         bank="Test Bank",
-        balance=0.0
+        balance=0.0,
     )
     mock_repo.create.side_effect = IntegrityError(None, None, None)
 
@@ -74,6 +75,7 @@ async def test_get_account_not_found(
     with pytest.raises(EntityNotFoundError):
         await account_service.get_account(account_id)
 
+
 @pytest.mark.asyncio
 async def test_get_account_by_cbu_not_found(
     account_service: AccountService, mock_repo: MagicMock
@@ -84,13 +86,14 @@ async def test_get_account_by_cbu_not_found(
     with pytest.raises(EntityNotFoundError):
         await account_service.get_account_by_cbu(cbu)
 
+
 @pytest.mark.asyncio
 async def test_get_all_accounts_by_user_id_success(
     account_service: AccountService, mock_repo: MagicMock
 ) -> None:
     user_id = uuid.uuid4()
     from decimal import Decimal
-    
+
     mock_account_1 = MagicMock(balance=Decimal("100.50"))
     mock_account_2 = MagicMock(balance=Decimal("50.00"))
     mock_repo.get_all_by_user_id.return_value = [mock_account_1, mock_account_2]

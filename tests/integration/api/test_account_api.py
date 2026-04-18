@@ -15,9 +15,13 @@ async def test_create_account_api_success(
 ) -> None:
     # 1. Create a user first (Account needs user_id)
     """
-    Integration test that verifies the accounts API creates an account and that the account is persisted.
-    
-    Creates a user, creates an account for that user, asserts the HTTP response is 201 and contains `bank`, `cbu`, `balance`, and `id`, converts the returned `id` to a UUID, and asserts a corresponding `Account` row exists in the database with the expected `bank` and a `Decimal('100.50')` balance.
+    Integration test that verifies the accounts API creates an account and that
+    the account is persisted.
+
+    Creates a user, creates an account for that user, asserts the HTTP response is
+    201 and contains `bank`, `cbu`, `balance`, and `id`, converts the returned `id`
+    to a UUID, and asserts a corresponding `Account` row exists in the database
+    with the expected `bank` and a `Decimal('100.50')` balance.
     """
     user_data = {"email": "account_owner@example.com", "full_name": "Account Owner"}
     user_res = await async_client.post("/users/", json=user_data)
@@ -55,9 +59,12 @@ async def test_create_account_api_success(
 async def test_create_account_duplicate_cbu_api(async_client: AsyncClient) -> None:
     # 1. Create a user
     """
-    Verifies that creating an account with a CBU already present in the system is rejected.
-    
-    Creates a user and an account, then attempts to create a second account with the same `cbu` and asserts the API responds with HTTP 400 and a `detail` message containing "already exists".
+    Verifies that creating an account with a CBU already present in the system
+    is rejected.
+
+    Creates a user and an account, then attempts to create a second account with
+    the same `cbu` and asserts the API responds with HTTP 400 and a `detail`
+    message containing "already exists".
     """
     user_data = {"email": "dup_cbu@example.com", "full_name": "Dup CBU"}
     user_res = await async_client.post("/users/", json=user_data)
@@ -84,18 +91,22 @@ async def test_create_account_duplicate_cbu_api(async_client: AsyncClient) -> No
 async def test_get_account_api_success(async_client: AsyncClient) -> None:
     # 1. Create user and account
     """
-    Verifies that an account created via the API can be retrieved by its ID and that the returned CBU matches the created account.
-    
-    Creates a user and an account, performs GET /accounts/{id}, and asserts the response status is 200 and the `cbu` field equals the originally provided CBU.
+    Verifies that an account created via the API can be retrieved by its ID and
+    that the returned CBU matches the created account.
+
+    Creates a user and an account, performs GET /accounts/{id}, and asserts the
+    response status is 200 and the `cbu` field equals the originally provided CBU.
     """
-    user_res = await async_client.post("/users/", json={"email": "get_acc@ex.com", "full_name": "Get Acc"})
+    user_res = await async_client.post(
+        "/users/", json={"email": "get_acc@ex.com", "full_name": "Get Acc"}
+    )
     user_id = user_res.json()["id"]
-    
+
     acc_data = {
         "bank": "Bank Inc",
         "balance": "50.00",
         "cbu": "1111111111111111111111",
-        "user_id": user_id
+        "user_id": user_id,
     }
     create_res = await async_client.post("/accounts/", json=acc_data)
     acc_id = create_res.json()["id"]
@@ -117,20 +128,23 @@ async def test_get_account_api_not_found(async_client: AsyncClient) -> None:
 async def test_get_account_by_cbu_api_success(async_client: AsyncClient) -> None:
     # 1. Create user and account
     """
-    Verify that an account can be retrieved by its CBU and the response contains the expected bank.
-    
-    Creates a user and an account with a known CBU, requests the account by that CBU, and asserts the API returns HTTP 200 and the account's `bank` matches the created account.
+    Verify that an account can be retrieved by its CBU and the response contains
+    the expected bank.
+
+    Creates a user and an account with a known CBU, requests the account by that
+    CBU, and asserts the API returns HTTP 200 and the account's `bank` matches
+    the created account.
     """
-    user_res = await async_client.post("/users/", json={"email": "cbu_acc@ex.com", "full_name": "CBU Acc"})
+    user_res = await async_client.post(
+        "/users/", json={"email": "cbu_acc@ex.com", "full_name": "CBU Acc"}
+    )
     user_id = user_res.json()["id"]
     cbu = "2222222222222222222222"
-    
-    await async_client.post("/accounts/", json={
-        "bank": "CBU Bank",
-        "balance": "0.00",
-        "cbu": cbu,
-        "user_id": user_id
-    })
+
+    await async_client.post(
+        "/accounts/",
+        json={"bank": "CBU Bank", "balance": "0.00", "cbu": cbu, "user_id": user_id},
+    )
 
     # 2. Fetch by CBU
     response = await async_client.get(f"/accounts/cbu/{cbu}")
@@ -142,25 +156,43 @@ async def test_get_account_by_cbu_api_success(async_client: AsyncClient) -> None
 async def test_get_accounts_by_user_api_success(async_client: AsyncClient) -> None:
     # 1. Create user
     """
-    Verify that fetching accounts for a specific user returns all created accounts and the correct aggregated total balance.
-    
-    Creates a user, creates two accounts for that user, calls GET /accounts/user/{user_id}, and asserts the response status is 200, the returned accounts list contains exactly two entries, and `total_balance` equals "300.50".
+    Verify that fetching accounts for a specific user returns all created accounts and
+    the correct aggregated total balance.
+
+    Creates a user, creates two accounts for that user, calls GET
+    /accounts/user/{user_id}, and asserts the response status is 200, the returned
+    accounts list contains exactly two entries, and `total_balance` equals
+    "300.50".
     """
-    user_res = await async_client.post("/users/", json={"email": "user_accs@ex.com", "full_name": "User Accs"})
+    user_res = await async_client.post(
+        "/users/", json={"email": "user_accs@ex.com", "full_name": "User Accs"}
+    )
     user_id = user_res.json()["id"]
-    
+
     # 2. Create two accounts
-    await async_client.post("/accounts/", json={
-        "bank": "Bank A", "balance": "100.00", "cbu": "3333333333333333333333", "user_id": user_id
-    })
-    await async_client.post("/accounts/", json={
-        "bank": "Bank B", "balance": "200.50", "cbu": "4444444444444444444444", "user_id": user_id
-    })
+    await async_client.post(
+        "/accounts/",
+        json={
+            "bank": "Bank A",
+            "balance": "100.00",
+            "cbu": "3333333333333333333333",
+            "user_id": user_id,
+        },
+    )
+    await async_client.post(
+        "/accounts/",
+        json={
+            "bank": "Bank B",
+            "balance": "200.50",
+            "cbu": "4444444444444444444444",
+            "user_id": user_id,
+        },
+    )
 
     # 3. Fetch all accounts for user
     response = await async_client.get(f"/accounts/user/{user_id}")
     assert response.status_code == 200
     data = response.json()
-    
+
     assert len(data["accounts"]) == 2
     assert data["total_balance"] == "300.50"

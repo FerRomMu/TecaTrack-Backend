@@ -11,8 +11,10 @@ class AccountBase(BaseModel):
     cbu: str
     user_id: uuid.UUID
 
+
 class AccountCreate(AccountBase):
     pass
+
 
 class AccountRead(AccountBase):
     id: uuid.UUID
@@ -20,6 +22,7 @@ class AccountRead(AccountBase):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class AccountsResponse(BaseModel):
     accounts: list[AccountRead]

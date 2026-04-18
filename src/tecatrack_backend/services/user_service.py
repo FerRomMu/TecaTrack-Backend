@@ -23,14 +23,14 @@ class UserService:
 
     async def get_user(self, user_id: uuid.UUID) -> User:
         """
-        Retrieve a user by their UUID.
-
+        Fetches a user by UUID.
+        
         Parameters:
-            user_id (uuid.UUID): The UUID of the user to retrieve.
-
+            user_id (uuid.UUID): UUID of the user to retrieve.
+        
         Returns:
-            User: The user matching the provided UUID.
-
+            User: The user with the given UUID.
+        
         Raises:
             EntityNotFoundError: If no user exists with the given `user_id`.
         """
@@ -59,15 +59,14 @@ class UserService:
 
     async def create_user(self, user_create: UserCreate) -> User:
         """
-        Create a new user from the provided creation data.
-
+        Create a new user from the supplied creation data.
+        
         Parameters:
-            user_create (UserCreate): Data required to create the user, including email
-                and other profile fields.
-
+            user_create (UserCreate): Creation payload containing the user's email and profile fields.
+        
         Returns:
-            User: The newly created user object.
-
+            User: The created user object.
+        
         Raises:
             EntityAlreadyExistsError: If a user with the same email already exists.
         """
@@ -78,17 +77,18 @@ class UserService:
 
     async def update_user(self, user_id: uuid.UUID, user_update: UserUpdate) -> User:
         """
-        Update an existing user's attributes.
-
+        Update attributes of an existing user.
+        
         Parameters:
-            user_id (uuid.UUID): The unique identifier of the user to update.
+            user_id (uuid.UUID): Identifier of the user to update.
             user_update (UserUpdate): Fields to apply to the user.
-
+        
         Returns:
             User: The updated user.
-
+        
         Raises:
             EntityNotFoundError: If no user exists with the given `user_id`.
+            EntityAlreadyExistsError: If the update would violate a uniqueness constraint (e.g., duplicate email).
         """
         user = await self.get_user(user_id)
         try:

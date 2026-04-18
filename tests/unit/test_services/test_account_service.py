@@ -36,14 +36,14 @@ def mock_repo() -> MagicMock:
 @pytest.fixture
 def account_service(mock_repo: MagicMock) -> AccountService:
     """
-    Create a AccountService instance configured to use the provided mocked repository.
-
+    Constructs an AccountService configured to use the provided mocked repository.
+    
     Parameters:
-        mock_repo (MagicMock): Mocked repository object expected to expose async methods
-            `get_by_email`, `get_by_id`, and `create`.
-
+        mock_repo (MagicMock): Mock repository expected to provide coroutine-compatible async methods
+            `get_by_cbu`, `get_by_id`, `create`, and `get_all_by_user_id`.
+    
     Returns:
-        AccountService: A AccountService instance wired to the provided repository mock.
+        AccountService: An AccountService instance wired to the provided repository mock.
     """
     return AccountService(mock_repo)
 

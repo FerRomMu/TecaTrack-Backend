@@ -16,12 +16,13 @@ async def get_account_service(
     session: Annotated[AsyncSession, Depends(get_db)],
 ) -> AccountService:
     """
-    Constructs a AccountService backed by a AccountRepository using the provided
-    database session.
-
+    Create an AccountService configured with an AccountRepository bound to the provided database session.
+    
+    Parameters:
+        session (AsyncSession): Database session to be used by the repository.
+    
     Returns:
-        AccountService: A service instance configured with a AccountRepository that uses
-            the given AsyncSession.
+        AccountService: Service instance that uses an AccountRepository backed by `session`.
     """
     repository = AccountRepository(session)
     return AccountService(repository)
@@ -50,10 +51,10 @@ async def get_account(
     service: Annotated[AccountService, Depends(get_account_service)],
 ) -> AccountRead:
     """
-    Retrieve a account by UUID.
-
+    Retrieve an account by its UUID.
+    
     Returns:
-        AccountRead: The account's data as a `AccountRead` model.
+        AccountRead: The account's data as an AccountRead model.
     """
     return await service.get_account(account_id)
 
@@ -64,11 +65,8 @@ async def get_account_by_cbu(
     service: Annotated[AccountService, Depends(get_account_service)],
 ) -> AccountRead:
     """
-    Retrieve a account by their CBU.
-
-    Parameters:
-        cbu (str): CBU of the account to retrieve.
-
+    Retrieve an account by its CBU.
+    
     Returns:
         AccountRead: The account matching the given CBU.
     """
@@ -80,13 +78,13 @@ async def get_account_by_user_id(
     service: Annotated[AccountService, Depends(get_account_service)],
 ) -> AccountRead:
     """
-    Retrieve a account by their user ID.
-
+    Retrieve all accounts belonging to the specified user.
+    
     Parameters:
-        user_id (uuid.UUID): User ID of the account to retrieve.
-
+        user_id (uuid.UUID): UUID of the user whose accounts will be retrieved.
+    
     Returns:
-        AccountRead: The account matching the given user ID.
+        AccountsResponse: Object containing `accounts` (list of AccountRead) and `total_balance` (sum of balances across those accounts).
     """
     accounts, total_balance = await service.get_all_accounts_by_user_id(user_id)
     return AccountsResponse(accounts=accounts, total_balance=total_balance)

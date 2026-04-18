@@ -2,21 +2,21 @@ from unittest.mock import MagicMock
 
 from tecatrack_backend.core.exception_handlers import domain_exception_handler
 from tecatrack_backend.core.exceptions import (
+    EntityAlreadyExistsError,
+    EntityNotFoundError,
     TecaTrackError,
-    UserAlreadyExistsError,
-    UserNotFoundError,
 )
 
 mock_request: MagicMock = MagicMock()
 
 
 def test_user_not_found_returns_404() -> None:
-    response = domain_exception_handler(mock_request, UserNotFoundError())
+    response = domain_exception_handler(mock_request, EntityNotFoundError("User", "1"))
     assert response.status_code == 404
 
 
 def test_user_already_exists_returns_400() -> None:
-    response = domain_exception_handler(mock_request, UserAlreadyExistsError())
+    response = domain_exception_handler(mock_request, EntityAlreadyExistsError("User", "1"))
     assert response.status_code == 400
 
 

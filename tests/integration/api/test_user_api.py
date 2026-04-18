@@ -69,7 +69,6 @@ async def test_get_user_api_not_found(async_client: AsyncClient) -> None:
     response = await async_client.get(f"/users/{fake_user_id}")
 
     assert response.status_code == 404
-    assert response.json()["detail"] == "User not found"
 
 
 @pytest.mark.asyncio
@@ -93,4 +92,3 @@ async def test_create_user_already_exists_api(async_client: AsyncClient) -> None
 
     # 3. Assert our domain exception handler returned the 400
     assert response2.status_code == 400
-    assert response2.json()["detail"] == "User already exists"

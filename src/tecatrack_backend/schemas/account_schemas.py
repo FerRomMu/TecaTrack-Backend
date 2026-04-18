@@ -23,4 +23,4 @@ class AccountRead(AccountBase):
 
 class AccountsResponse(BaseModel):
     accounts: list[AccountRead]
-    total: int
+    total_balance: Decimal

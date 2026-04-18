@@ -1,3 +1,4 @@
+from decimal import Decimal
 import uuid
 
 from sqlalchemy.exc import IntegrityError
@@ -32,7 +33,7 @@ class AccountService:
             account: The account matching the provided UUID.
 
         Raises:
-            accountNotFoundError: If no account exists with the given `account_id`.
+            EntityNotFoundError: If no account exists with the given `account_id`.
         """
         account = await self.repository.get_by_id(account_id)
         if not account:
@@ -50,24 +51,28 @@ class AccountService:
             account (account): The matching account object.
 
         Raises:
-            accountNotFoundError: If no account exists with the given cbu.
+            EntityNotFoundError: If no account exists with the given cbu.
         """
         account = await self.repository.get_by_cbu(cbu)
         if not account:
             raise EntityNotFoundError("Account", cbu)
         return account
 
-    async def get_all_accounts_by_owner_id(self, owner_id: uuid.UUID) -> list[Account]:
+    async def get_all_accounts_by_user_id(
+        self, user_id: uuid.UUID
+    ) -> tuple[list[Account], Decimal]:
         """
-        Retrieve all accounts for a specific owner.
+        Retrieve all accounts for a specific user.
 
         Parameters:
-            owner_id (uuid.UUID): The UUID of the owner.
+            user_id (uuid.UUID): The UUID of the user.
 
         Returns:
-            list[Account]: A list of all accounts belonging to the owner.
+            list[Account]: A list of all accounts belonging to the user.
         """
-        return await self.repository.get_by_owner_id(owner_id)
+        accounts: list[Account] = await self.repository.get_all_by_user_id(user_id)
+        total_balance = sum(account.balance for account in accounts)
+        return accounts, total_balance
 
     async def create_account(self, account_create: AccountCreate) -> Account:
         """
@@ -75,7 +80,7 @@ class AccountService:
 
         Parameters:
             account_create (AccountCreate): Data required to create the account,
-                including cbu, name, and owner_id.
+                including cbu, name, and user_id.
 
         Returns:
             account: The newly created account.

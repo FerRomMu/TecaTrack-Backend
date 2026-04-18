@@ -29,6 +29,7 @@ def mock_repo() -> MagicMock:
     repo.get_by_cbu = AsyncMock()
     repo.get_by_id = AsyncMock()
     repo.create = AsyncMock()
+    repo.get_all_by_user_id = AsyncMock()
     return repo
 
 
@@ -53,8 +54,7 @@ async def test_create_account_already_exists(
 ) -> None:
     account_create = AccountCreate(
         cbu="1234567890123456789012",
-        name="Test Account",
-        owner_id=uuid.uuid4(),
+        user_id=uuid.uuid4(),
         bank="Test Bank",
         balance=0.0
     )
@@ -83,3 +83,20 @@ async def test_get_account_by_cbu_not_found(
 
     with pytest.raises(EntityNotFoundError):
         await account_service.get_account_by_cbu(cbu)
+
+@pytest.mark.asyncio
+async def test_get_all_accounts_by_user_id_success(
+    account_service: AccountService, mock_repo: MagicMock
+) -> None:
+    user_id = uuid.uuid4()
+    from decimal import Decimal
+    
+    mock_account_1 = MagicMock(balance=Decimal("100.50"))
+    mock_account_2 = MagicMock(balance=Decimal("50.00"))
+    mock_repo.get_all_by_user_id.return_value = [mock_account_1, mock_account_2]
+
+    accounts, total_balance = await account_service.get_all_accounts_by_user_id(user_id)
+
+    assert len(accounts) == 2
+    assert total_balance == Decimal("150.50")
+    mock_repo.get_all_by_user_id.assert_awaited_once_with(user_id)

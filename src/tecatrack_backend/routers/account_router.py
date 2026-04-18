@@ -88,4 +88,5 @@ async def get_account_by_user_id(
     Returns:
         AccountRead: The account matching the given user ID.
     """
-    return await service.get_all_accounts_by_owner_id(user_id)
+    accounts, total_balance = await service.get_all_accounts_by_user_id(user_id)
+    return AccountsResponse(accounts=accounts, total_balance=total_balance)

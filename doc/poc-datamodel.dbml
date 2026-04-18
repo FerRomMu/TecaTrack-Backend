@@ -11,7 +11,7 @@ Table accounts {
 
   bank text [not null]
   balance numeric [not null]
-  cbu CHAR(22) [not null]
+  cbu CHAR(22) [unique, not null]
   
   created_at timestamptz
   updated_at timestamptz

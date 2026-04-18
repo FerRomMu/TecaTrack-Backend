@@ -14,7 +14,6 @@ from tecatrack_backend.models import Account
 async def test_create_account_api_success(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
-    # 1. Create a user first (Account needs user_id)
     """
     Integration test that verifies the accounts API creates an account and that
     the account is persisted.
@@ -92,7 +91,6 @@ async def test_create_account_invalid_cbu_api(async_client: AsyncClient) -> None
 # test_create_account_duplicate_cbu_api
 @pytest.mark.asyncio
 async def test_create_account_duplicate_cbu_api(async_client: AsyncClient) -> None:
-    # 1. Create a user
     """
     Verifies that creating an account with a CBU already present in the system
     is rejected.
@@ -146,7 +144,6 @@ async def test_create_account_non_existent_user_api(async_client: AsyncClient) -
 # test_get_account_api_success
 @pytest.mark.asyncio
 async def test_get_account_api_success(async_client: AsyncClient) -> None:
-    # 1. Create user and account
     """
     Verifies that an account created via the API can be retrieved by its ID and
     that the returned CBU matches the created account.
@@ -185,7 +182,6 @@ async def test_get_account_api_not_found(async_client: AsyncClient) -> None:
 # test_get_account_by_cbu_api_success
 @pytest.mark.asyncio
 async def test_get_account_by_cbu_api_success(async_client: AsyncClient) -> None:
-    # 1. Create user and account
     """
     Verify that an account can be retrieved by its CBU and the response contains
     the expected bank.
@@ -230,7 +226,6 @@ async def test_get_account_by_cbu_api_not_found(async_client: AsyncClient) -> No
 # test_get_accounts_by_user_api_success
 @pytest.mark.asyncio
 async def test_get_accounts_by_user_api_success(async_client: AsyncClient) -> None:
-    # 1. Create user
     """
     Verify that fetching accounts for a specific user returns all created accounts and
     the correct aggregated total balance.

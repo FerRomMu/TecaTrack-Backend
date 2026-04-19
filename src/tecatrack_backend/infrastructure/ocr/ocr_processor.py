@@ -8,7 +8,12 @@ from tecatrack_backend.infrastructure.ocr.image_converter import ImageConverter
 from tecatrack_backend.infrastructure.ocr.ocr_engine import OCREngine
 from tecatrack_backend.infrastructure.ocr.patterns import PATTERNS
 from tecatrack_backend.schemas.ocr_schemas import OCRResponse
+from typing import TypedDict
 
+class OCRBlock(TypedDict):
+    bbox: list[list[float | int]]
+    text: str
+    confidence: float
 
 class OCRProcessor:
     def __init__(self, converter: ImageConverter):
@@ -98,7 +103,7 @@ class OCRProcessor:
     def _extract(
         self,
         img_bgr: np.ndarray,
-    ) -> tuple[str, list[dict]]:
+    ) -> tuple[str, list[OCRBlock]]:
         """
         Run OCR on ``img_bgr`` and return plain text plus structured blocks.
 
@@ -128,7 +133,7 @@ class OCRProcessor:
         if not result or not result[0]:
             return "", []
 
-        blocks: list[dict] = []
+        blocks: list[OCRBlock] = []
         lines: list[str] = []
 
         res = result[0]

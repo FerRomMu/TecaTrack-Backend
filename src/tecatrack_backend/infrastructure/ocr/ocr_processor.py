@@ -1,4 +1,5 @@
 import re
+from typing import TypedDict
 
 import cv2
 import numpy as np
@@ -8,12 +9,13 @@ from tecatrack_backend.infrastructure.ocr.image_converter import ImageConverter
 from tecatrack_backend.infrastructure.ocr.ocr_engine import OCREngine
 from tecatrack_backend.infrastructure.ocr.patterns import PATTERNS
 from tecatrack_backend.schemas.ocr_schemas import OCRResponse
-from typing import TypedDict
+
 
 class OCRBlock(TypedDict):
     bbox: list[list[float | int]]
     text: str
     confidence: float
+
 
 class OCRProcessor:
     def __init__(self, converter: ImageConverter):

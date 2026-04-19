@@ -20,7 +20,7 @@ class OCRProcessor:
         for img in images:
             img = self._preprocess(img)
             text, _ = self._extract(img)
-            text = self.normalize_ocr_text(text)
+            text = self._normalize_ocr_text(text)
             full_text += text + "\n"
             
         fields = self._parse(full_text)
@@ -83,7 +83,9 @@ class OCRProcessor:
             match = re.search(pattern, text, re.IGNORECASE)
             if match:
                 value = next((g for g in match.groups() if g is not None), None)
-                fields[field] = value.strip() if value else None
+                value = value.strip()
+                value = self._deduplicate_words(value)
+                fields[field] = value
             else:
                 fields[field] = None
 
@@ -128,7 +130,6 @@ class OCRProcessor:
         
         res = result[0]
 
-        # Formato PaddleOCR v3.x (PaddleX) - Diccionario
         if isinstance(res, dict) and "rec_texts" in res:
             texts = res.get("rec_texts", [])
             scores = res.get("rec_scores", [])
@@ -152,5 +153,8 @@ class OCRProcessor:
 
         return "\n".join(lines), blocks
 
-    def normalize_ocr_text(self, text: str) -> str:
+    def _normalize_ocr_text(self, text: str) -> str:
         return re.sub(r"\s+", " ", text).strip()
+
+    def _deduplicate_words(self, text: str) -> str:
+        return re.sub(r"\b(\w+)\s+\1\b", r"\1", text, flags=re.IGNORECASE)

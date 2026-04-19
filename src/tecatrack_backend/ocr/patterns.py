@@ -6,5 +6,6 @@ PATTERNS: dict[str, str] = {
     "alias": r"[Aa]lias[:\s]+([\w.]+)",
     "cuit_cuil": r"(?:CUIT|CUIL)[:\s]*(\d{2}-?\d{8}-?\d)",
     "receipt_number": r"(?:N[°º]?|Comprobante|Nro\.?)[:\s#]*(\d+)",
-    "source_bank": r"(?:Banco|Entidad)[:\s]+([A-Za-záéíóúñÁÉÍÓÚÑ ]+)",
+    "destination_bank": r"Entidad\s+([A-Za-zÁÉÍÓÚÑáéíóúñ ]+?)(?=\s+(CBU|CVU|CUIT|Origen|$))",
+    "source_bank": r"Banco\s+[A-Za-z]?\s*([A-Za-zÁÉÍÓÚÑáéíóúñ ]+?)(?=\s+(Origen|Titular|Caja|$))",
 }

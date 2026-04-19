@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
@@ -5,8 +7,12 @@ from tecatrack_backend.core.exceptions import (
     EntityAlreadyExistsError,
     EntityNotFoundError,
     InvalidEntityError,
+    InvalidFileFormatError,
+    OCRProcessingError,
     TecaTrackError,
 )
+
+logger = logging.getLogger(__name__)
 
 EXCEPTION_MAP: dict[type[TecaTrackError], tuple[int, str]] = {
     EntityNotFoundError: (404, "Entity not found"),
@@ -15,6 +21,8 @@ EXCEPTION_MAP: dict[type[TecaTrackError], tuple[int, str]] = {
         "Entity already exists",
     ),
     InvalidEntityError: (400, "Invalid entity structure"),
+    InvalidFileFormatError: (422, "Unsupported file format"),
+    OCRProcessingError: (500, "OCR processing failed"),
 }
 
 
@@ -35,6 +43,10 @@ def domain_exception_handler(request: Request, exc: TecaTrackError) -> JSONRespo
             body `{"detail": <message>}`.
     """
     status_code, msg = EXCEPTION_MAP.get(type(exc), (500, "Internal domain error"))
+    if status_code == 500:
+        logger.exception("Unhandled domain error: %s", exc)
+    else:
+        logger.warning("Domain error [%s]: %s", exc.__class__.__name__, exc)
     return JSONResponse(status_code=status_code, content={"detail": msg})
 
 

@@ -55,3 +55,15 @@ class InvalidEntityError(TecaTrackError):
             exception message to "<entity_name> with invalid {field_name}".
         """
         super().__init__(f"{entity_name} with invalid {field_name}")
+
+
+class OCRProcessingError(TecaTrackError):
+    """Raised when OCR processing fails."""
+
+    pass
+
+
+class InvalidFileFormatError(TecaTrackError):
+    """Raised when the file format is invalid."""
+
+    pass

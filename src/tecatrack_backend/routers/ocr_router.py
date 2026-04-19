@@ -22,7 +22,7 @@ def get_ocr_service() -> OCRService:
 @router.post("/process-receipt", response_model=OCRResponse)
 async def process_receipt(
     service: Annotated[OCRService, Depends(get_ocr_service)],
-    file: UploadFile = File(...),
+    file: Annotated[UploadFile, File()],
 ) -> OCRResponse:
     """
     Process an uploaded receipt image and return structured OCR data.

@@ -9,6 +9,7 @@ class OCREngine:
     :meth:`get`, keeping application startup time unaffected.  Subsequent calls
     return the cached instance immediately.
     """
+
     _instance: PaddleOCR | None = None
 
     @classmethod

@@ -85,4 +85,3 @@ def test_process_receipt_with_empty_file_passes_empty_bytes(
     ocr_service.process_receipt(_make_upload_file(b""))
 
     mock_processor.process_receipt.assert_called_once_with(b"")
-

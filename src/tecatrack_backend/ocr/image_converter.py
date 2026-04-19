@@ -4,9 +4,9 @@ import numpy as np
 
 from tecatrack_backend.core.exceptions import InvalidFileFormatError
 
-
 PDF_MAGIC = b"%PDF"
 SUPPORTED_IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".tiff", ".bmp", ".webp"}
+
 
 class ImageConverter:
     """

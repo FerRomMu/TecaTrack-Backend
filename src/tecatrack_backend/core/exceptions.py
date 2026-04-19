@@ -62,6 +62,7 @@ class OCRProcessingError(TecaTrackError):
 
     pass
 
+
 class InvalidFileFormatError(TecaTrackError):
     """Raised when the file format is invalid."""
 

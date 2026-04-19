@@ -1,6 +1,8 @@
+from pathlib import Path
+
 import pytest
 from httpx import AsyncClient
-from pathlib import Path
+
 
 @pytest.mark.asyncio
 async def test_process_receipt_api_integration(async_client: AsyncClient):
@@ -12,14 +14,12 @@ async def test_process_receipt_api_integration(async_client: AsyncClient):
     receipt_path = Path("tests/integration/fixtures/receipts/comprobante.png")
 
     with open(receipt_path, "rb") as f:
-        files = {
-            "file": ("comprobante.png", f, "image/png")
-        }
+        files = {"file": ("comprobante.png", f, "image/png")}
         response = await async_client.post("/ocr/process-receipt", files=files)
 
     assert response.status_code == 200
     data = response.json()
-    
+
     expected_fields = {
         "amount": "8.300,00",
         "date": "24 de febrero de 2026",
@@ -29,8 +29,8 @@ async def test_process_receipt_api_integration(async_client: AsyncClient):
         "cuit_cuil": "20-12345678-9",
         "receipt_number": None,
         "destination_bank": "BBVA",
-        "source_bank": "Brubank"
+        "source_bank": "Brubank",
     }
-    
+
     assert "fields" in data
     assert data["fields"] == expected_fields

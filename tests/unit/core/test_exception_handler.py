@@ -2,10 +2,10 @@ from unittest.mock import MagicMock
 
 from tecatrack_backend.core.exception_handlers import domain_exception_handler
 from tecatrack_backend.core.exceptions import (
-    InvalidFileFormatError,
-    OCRProcessingError,
     EntityAlreadyExistsError,
     EntityNotFoundError,
+    InvalidFileFormatError,
+    OCRProcessingError,
     TecaTrackError,
 )
 

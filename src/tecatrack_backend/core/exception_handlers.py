@@ -7,9 +7,9 @@ from tecatrack_backend.core.exceptions import (
     EntityAlreadyExistsError,
     EntityNotFoundError,
     InvalidEntityError,
-    TecaTrackError,
-    OCRProcessingError,
     InvalidFileFormatError,
+    OCRProcessingError,
+    TecaTrackError,
 )
 
 logger = logging.getLogger(__name__)

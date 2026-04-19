@@ -1,12 +1,13 @@
-import cv2
-import numpy as np
 import re
 
-from tecatrack_backend.ocr.ocr_engine import OCREngine
-from tecatrack_backend.ocr.image_converter import ImageConverter
-from tecatrack_backend.schemas.ocr_schemas import OCRResponse
+import cv2
+import numpy as np
+
 from tecatrack_backend.core.exceptions import OCRProcessingError
+from tecatrack_backend.ocr.image_converter import ImageConverter
+from tecatrack_backend.ocr.ocr_engine import OCREngine
 from tecatrack_backend.ocr.patterns import PATTERNS
+from tecatrack_backend.schemas.ocr_schemas import OCRResponse
 
 
 class OCRProcessor:
@@ -15,17 +16,17 @@ class OCRProcessor:
 
     def process_receipt(self, raw_bytes: bytes) -> OCRResponse:
         images = self.converter.from_bytes(raw_bytes)
-        
+
         full_text = ""
         for img in images:
             img = self._preprocess(img)
             text, _ = self._extract(img)
             text = self._normalize_ocr_text(text)
             full_text += text + "\n"
-            
+
         fields = self._parse(full_text)
         return OCRResponse(fields=fields)
-    
+
     def _preprocess(self, img_bgr: np.ndarray, min_width: int = 1000) -> np.ndarray:
         """
         Pre-process a BGR image for OCR.
@@ -53,7 +54,7 @@ class OCRProcessor:
                 interpolation=cv2.INTER_CUBIC,
             )
 
-        #denoising 
+        # denoising
         img_bgr = cv2.fastNlMeansDenoisingColored(
             img_bgr,
             None,
@@ -127,7 +128,7 @@ class OCRProcessor:
 
         blocks: list[dict] = []
         lines: list[str] = []
-        
+
         res = result[0]
 
         if isinstance(res, dict) and "rec_texts" in res:
@@ -139,16 +140,18 @@ class OCRProcessor:
                 text = texts[i]
                 if not text:
                     continue
-                    
+
                 confidence = float(scores[i]) if i < len(scores) else 0.0
                 poly = polys[i] if i < len(polys) else []
                 bbox = poly.tolist() if getattr(poly, "tolist", None) else list(poly)
-                
-                blocks.append({
-                    "bbox": bbox,
-                    "text": str(text),
-                    "confidence": round(confidence, 3),
-                })
+
+                blocks.append(
+                    {
+                        "bbox": bbox,
+                        "text": str(text),
+                        "confidence": round(confidence, 3),
+                    }
+                )
                 lines.append(str(text))
 
         return "\n".join(lines), blocks

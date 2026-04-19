@@ -1,11 +1,11 @@
 from fastapi import UploadFile
+
 from tecatrack_backend.ocr.ocr_processor import OCRProcessor
 from tecatrack_backend.schemas.ocr_schemas import OCRResponse
 
 
 class OCRService:
-
-    def __init__(self,ocr_processor: OCRProcessor) -> None:
+    def __init__(self, ocr_processor: OCRProcessor) -> None:
         self._ocr_processor = ocr_processor
 
     def process_receipt(self, file: UploadFile) -> OCRResponse:

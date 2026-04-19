@@ -1,7 +1,7 @@
 # TecaTrack Backend
 
 <p align="center">
-  <img src="assets/images/app-icon.png" alt="TecaTrack Logo" width="350"/>
+  <img src=".github/assets/app-icon.png" alt="TecaTrack Logo" width="350"/>
 </p>
 
 ## Development Setup

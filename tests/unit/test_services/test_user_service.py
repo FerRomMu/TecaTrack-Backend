@@ -4,7 +4,10 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from tecatrack_backend.core.exceptions import UserAlreadyExistsError, UserNotFoundError
+from tecatrack_backend.core.exceptions import (
+    EntityAlreadyExistsError,
+    EntityNotFoundError,
+)
 from tecatrack_backend.schemas.user_schemas import UserCreate
 from tecatrack_backend.services.user_service import UserService
 
@@ -51,7 +54,7 @@ async def test_create_user_already_exists(
     user_create = UserCreate(email="test@example.com", full_name="Test User")
     mock_repo.create.side_effect = IntegrityError(None, None, None)
 
-    with pytest.raises(UserAlreadyExistsError):
+    with pytest.raises(EntityAlreadyExistsError):
         await user_service.create_user(user_create)
 
 
@@ -62,5 +65,5 @@ async def test_get_user_not_found(
     user_id = uuid.uuid4()
     mock_repo.get_by_id.return_value = None
 
-    with pytest.raises(UserNotFoundError):
+    with pytest.raises(EntityNotFoundError):
         await user_service.get_user(user_id)

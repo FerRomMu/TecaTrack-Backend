@@ -32,6 +32,5 @@ async def test_process_receipt_api_integration(async_client: AsyncClient):
         "source_bank": "Brubank"
     }
     
-    # Validación de la estructura y contenido de los campos extraídos
     assert "fields" in data
     assert data["fields"] == expected_fields

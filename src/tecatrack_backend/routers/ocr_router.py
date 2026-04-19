@@ -1,10 +1,9 @@
-import asyncio
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, UploadFile
 
-from tecatrack_backend.ocr.image_converter import ImageConverter
-from tecatrack_backend.ocr.ocr_processor import OCRProcessor
+from tecatrack_backend.infrastructure.ocr.image_converter import ImageConverter
+from tecatrack_backend.infrastructure.ocr.ocr_processor import OCRProcessor
 from tecatrack_backend.schemas.ocr_schemas import OCRResponse
 from tecatrack_backend.services.ocr_service import OCRService
 
@@ -33,5 +32,4 @@ async def process_receipt(
     Returns:
         OCRResponse: Structured OCR results for all pages in the document.
     """
-    loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(None, service.process_receipt, file)
+    return await service.process_receipt(file)

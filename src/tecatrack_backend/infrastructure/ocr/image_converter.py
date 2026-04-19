@@ -45,23 +45,32 @@ class ImageConverter:
         Returns:
             list[np.ndarray]: One BGR image per PDF page, in page order.
         """
-        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
         images: list[np.ndarray] = []
+        try:
+            with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:
+                for page in doc:
+                    pix = page.get_pixmap(dpi=300)
+                    img = np.frombuffer(pix.samples, dtype=np.uint8).reshape(
+                        pix.height, pix.width, pix.n
+                    )
 
-        for page in doc:
-            pix = page.get_pixmap(dpi=300)
-            img = np.frombuffer(pix.samples, dtype=np.uint8).reshape(
-                pix.height, pix.width, pix.n
-            )
+                    if pix.n == 4:  # RGBA → BGR
+                        img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGR)
+                    elif pix.n == 3:  # RGB → BGR
+                        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+                    elif pix.n == 1:  # GRAY → BGR
+                        img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+                    else:
+                        raise InvalidFileFormatError(
+                            f"Unsupported PDF pixmap channels: {pix.n}"
+                        )
+                    images.append(img)
+        except Exception as exc:
+            raise InvalidFileFormatError(
+                "Could not decode PDF bytes. "
+                "Supported formats: PNG, JPEG, TIFF, BMP, WEBP, PDF."
+            ) from exc
 
-            if pix.n == 4:  # RGBA → BGR
-                img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
-            else:  # RGB → BGR
-                img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-
-            images.append(img)
-
-        doc.close()
         return images
 
     def _bytes_to_bgr(self, raw_bytes: bytes) -> np.ndarray:

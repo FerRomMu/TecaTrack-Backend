@@ -1,3 +1,5 @@
+import threading
+
 from paddleocr import PaddleOCR
 
 
@@ -11,6 +13,7 @@ class OCREngine:
     """
 
     _instance: PaddleOCR | None = None
+    _lock = threading.Lock()
 
     @classmethod
     def get(cls) -> PaddleOCR:
@@ -22,9 +25,11 @@ class OCREngine:
                 (Latin) text with textline orientation detection enabled.
         """
         if cls._instance is None:
-            cls._instance = PaddleOCR(
-                use_textline_orientation=True,
-                lang="es",
-                enable_mkldnn=False,
-            )
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = PaddleOCR(
+                        use_textline_orientation=True,
+                        lang="es",
+                        enable_mkldnn=False,
+                    )
         return cls._instance

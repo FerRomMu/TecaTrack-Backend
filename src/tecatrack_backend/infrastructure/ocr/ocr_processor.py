@@ -4,9 +4,9 @@ import cv2
 import numpy as np
 
 from tecatrack_backend.core.exceptions import OCRProcessingError
-from tecatrack_backend.ocr.image_converter import ImageConverter
-from tecatrack_backend.ocr.ocr_engine import OCREngine
-from tecatrack_backend.ocr.patterns import PATTERNS
+from tecatrack_backend.infrastructure.ocr.image_converter import ImageConverter
+from tecatrack_backend.infrastructure.ocr.ocr_engine import OCREngine
+from tecatrack_backend.infrastructure.ocr.patterns import PATTERNS
 from tecatrack_backend.schemas.ocr_schemas import OCRResponse
 
 
@@ -84,9 +84,12 @@ class OCRProcessor:
             match = re.search(pattern, text, re.IGNORECASE)
             if match:
                 value = next((g for g in match.groups() if g is not None), None)
-                value = value.strip()
-                value = self._deduplicate_words(value)
-                fields[field] = value
+                if value is not None:
+                    value = value.strip()
+                    value = self._deduplicate_words(value)
+                    fields[field] = value
+                else:
+                    fields[field] = None
             else:
                 fields[field] = None
 

@@ -117,9 +117,8 @@ class OCRProcessor:
             OCRProcessingError: If PaddleOCR returns an unexpected result
                 structure.
         """
-        engine = OCREngine.get()
-
         try:
+            engine = OCREngine.get()
             result = engine.ocr(img_bgr)
         except Exception as exc:
             raise OCRProcessingError(
@@ -156,6 +155,10 @@ class OCRProcessor:
                     }
                 )
                 lines.append(str(text))
+        else:
+            raise OCRProcessingError(
+                f"Unexpected OCR result structure: {type(res).__name__}"
+            )
 
         return "\n".join(lines), blocks
 

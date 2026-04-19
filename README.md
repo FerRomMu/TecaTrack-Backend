@@ -1,5 +1,9 @@
 # TecaTrack Backend
 
+<p align="center">
+  <img src="assets/images/app-icon.png" alt="TecaTrack Logo" width="350"/>
+</p>
+
 ## Development Setup
 
 This project uses `uv` for dependency management and `ruff` for linting and formatting.

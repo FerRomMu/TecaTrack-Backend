@@ -23,7 +23,11 @@ async def test_create_account_api_success(
     to a UUID, and asserts a corresponding `Account` row exists in the database
     with the expected `bank` and a `Decimal('100.50')` balance.
     """
-    user_data = {"email": "account_owner@example.com", "full_name": "Account Owner"}
+    user_data = {
+        "email": "account_owner@example.com",
+        "full_name": "Account Owner",
+        "cuil": "11111111111",
+    }
     user_res = await async_client.post("/users/", json=user_data)
     assert user_res.status_code == 201
     user_id = user_res.json()["id"]
@@ -67,6 +71,7 @@ async def test_create_account_invalid_cbu_api(async_client: AsyncClient) -> None
     user_data = {
         "email": "invalid_cbu_owner@example.com",
         "full_name": "Invalid CBU Owner",
+        "cuil": "22222222222",
     }
     user_res = await async_client.post("/users/", json=user_data)
     assert user_res.status_code == 201
@@ -99,7 +104,11 @@ async def test_create_account_duplicate_cbu_api(async_client: AsyncClient) -> No
     the same `cbu` and asserts the API responds with HTTP 400 and a `detail`
     message containing "already exists".
     """
-    user_data = {"email": "dup_cbu@example.com", "full_name": "Dup CBU"}
+    user_data = {
+        "email": "dup_cbu@example.com",
+        "full_name": "Dup CBU",
+        "cuil": "33333333333",
+    }
     user_res = await async_client.post("/users/", json=user_data)
     user_id = user_res.json()["id"]
 
@@ -152,7 +161,12 @@ async def test_get_account_api_success(async_client: AsyncClient) -> None:
     response status is 200 and the `cbu` field equals the originally provided CBU.
     """
     user_res = await async_client.post(
-        "/users/", json={"email": "get_acc@ex.com", "full_name": "Get Acc"}
+        "/users/",
+        json={
+            "email": "get_acc@ex.com",
+            "full_name": "Get Acc",
+            "cuil": "44444444444",
+        },
     )
     user_id = user_res.json()["id"]
 
@@ -191,7 +205,8 @@ async def test_get_account_by_cbu_api_success(async_client: AsyncClient) -> None
     the created account.
     """
     user_res = await async_client.post(
-        "/users/", json={"email": "cbu_acc@ex.com", "full_name": "CBU Acc"}
+        "/users/",
+        json={"email": "cbu_acc@ex.com", "full_name": "CBU Acc", "cuil": "55555555555"},
     )
     user_id = user_res.json()["id"]
     cbu = "2222222222222222222222"
@@ -236,7 +251,12 @@ async def test_get_accounts_by_user_api_success(async_client: AsyncClient) -> No
     "300.50".
     """
     user_res = await async_client.post(
-        "/users/", json={"email": "user_accs@ex.com", "full_name": "User Accs"}
+        "/users/",
+        json={
+            "email": "user_accs@ex.com",
+            "full_name": "User Accs",
+            "cuil": "66666666666",
+        },
     )
     user_id = user_res.json()["id"]
 
@@ -296,7 +316,8 @@ async def test_get_accounts_by_user_with_no_accounts(async_client: AsyncClient) 
     "0.00".
     """
     user_res = await async_client.post(
-        "/users/", json={"email": "no_accs@ex.com", "full_name": "No Accs"}
+        "/users/",
+        json={"email": "no_accs@ex.com", "full_name": "No Accs", "cuil": "77777777777"},
     )
     user_id = user_res.json()["id"]
 

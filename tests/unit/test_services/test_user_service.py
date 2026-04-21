@@ -51,7 +51,9 @@ def user_service(mock_repo: MagicMock) -> UserService:
 async def test_create_user_already_exists(
     user_service: UserService, mock_repo: MagicMock
 ) -> None:
-    user_create = UserCreate(email="test@example.com", full_name="Test User")
+    user_create = UserCreate(
+        email="test@example.com", full_name="Test User", cuil="12345678901"
+    )
     mock_repo.create.side_effect = IntegrityError(None, None, None)
 
     with pytest.raises(EntityAlreadyExistsError):

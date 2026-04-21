@@ -21,7 +21,11 @@ async def test_create_user_api_success(
     to a UUID, queries the database for that user, and asserts the record exists
     with the expected email.
     """
-    user_data = {"email": "api_test@example.com", "full_name": "API Test User"}
+    user_data = {
+        "email": "api_test@example.com",
+        "full_name": "API Test User",
+        "cuil": "11111111111",
+    }
 
     response = await async_client.post("/users/", json=user_data)
 
@@ -44,7 +48,11 @@ async def test_get_user_api_success(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     # First, let's create a user to fetch
-    user_data = {"email": "fetch_me@example.com", "full_name": "Fetch Test"}
+    user_data = {
+        "email": "fetch_me@example.com",
+        "full_name": "Fetch Test",
+        "cuil": "22222222222",
+    }
     create_response = await async_client.post("/users/", json=user_data)
     assert create_response.status_code == 201
     user_id = create_response.json()["id"]
@@ -79,7 +87,11 @@ async def test_create_user_already_exists_api(async_client: AsyncClient) -> None
     Sends two POST requests to /users/ with identical payload; asserts the first returns
     HTTP 201 and the second returns HTTP 400.
     """
-    user_data = {"email": "duplicate@example.com", "full_name": "Duplicate"}
+    user_data = {
+        "email": "duplicate@example.com",
+        "full_name": "Duplicate",
+        "cuil": "33333333333",
+    }
 
     # 1. Create first user
     response1 = await async_client.post("/users/", json=user_data)

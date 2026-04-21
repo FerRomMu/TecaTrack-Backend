@@ -56,6 +56,23 @@ class AccountRepository:
         )
         return result.scalars().all()
 
+    async def get_by_bank(self, user_id: uuid.UUID, bank: str) -> Account | None:
+        """
+        Retrieve an account by its bank from the specified user.
+
+        Parameters:
+                user_id (uuid.UUID): UUID of the user whose account should be
+                retrieved.
+                bank (str): Bank name to match.
+
+        Returns:
+                Account | None: The matching Account instance if found, `None` otherwise.
+        """
+        result = await self.session.execute(
+            select(Account).where(Account.user_id == user_id, Account.bank == bank)
+        )
+        return result.scalar_one_or_none()
+
     async def create(self, account_create: AccountCreate) -> Account:
         """
         Create a new Account from the provided creation schema and persist it to the

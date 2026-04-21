@@ -122,3 +122,25 @@ class AccountService:
                     raise InvalidEntityError("Account", "cbu") from e
 
             raise e
+
+    async def get_account_by_bank(self, cuil: str, bank: str) -> Account:
+        """
+        Retrieve an Account by the user's CUIL and the bank name.
+
+        Parameters:
+            cuil (str): CUIL identifier of the user.
+            bank (str): Bank name to search for.
+
+        Returns:
+            Account: The matching account.
+
+        Raises:
+            EntityNotFoundError: If no account exists with the given CUIL and bank.
+        """
+        user = await self.user_repository.get_by_cuil(cuil)
+        if not user:
+            raise EntityNotFoundError("User", str(cuil))
+        account = await self.repository.get_by_bank(user.id, bank)
+        if not account:
+            raise EntityNotFoundError("Account", bank)
+        return account

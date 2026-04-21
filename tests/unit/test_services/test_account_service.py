@@ -31,6 +31,7 @@ def mock_repo() -> MagicMock:
     repo.get_by_id = AsyncMock()
     repo.create = AsyncMock()
     repo.get_all_by_user_id = AsyncMock()
+    repo.get_by_bank = AsyncMock()
     return repo
 
 
@@ -39,14 +40,13 @@ def mock_user_repo() -> MagicMock:
     """
     Create a mocked repository configured with asynchronous user-related methods.
 
-    The returned MagicMock has coroutine-compatible attributes `get_by_id` (an
-    AsyncMock) suitable for injecting into services in async tests.
-
     Returns:
-        MagicMock: A repository mock with `get_by_id` implemented as AsyncMock.
+        MagicMock: A repository mock with `get_by_id` and `get_by_cuil`
+            implemented as AsyncMock.
     """
     repo = MagicMock()
     repo.get_by_id = AsyncMock()
+    repo.get_by_cuil = AsyncMock()
     return repo
 
 
@@ -152,3 +152,34 @@ async def test_get_all_accounts_by_user_id_empty(
     assert len(accounts) == 0
     assert total_balance == Decimal("0")
     mock_repo.get_all_by_user_id.assert_awaited_once_with(user_id)
+
+@pytest.mark.asyncio
+async def test_get_account_by_bank_not_found(
+    account_service: AccountService, mock_repo: MagicMock, mock_user_repo: MagicMock
+) -> None:
+    cuil = "12345678901"
+    bank = "Test Bank"
+    
+    mock_user_repo.get_by_cuil.return_value = MagicMock(id=uuid.uuid4())
+    mock_repo.get_by_bank.return_value = None
+
+    with pytest.raises(EntityNotFoundError):
+        await account_service.get_account_by_bank(cuil, bank)
+
+
+@pytest.mark.asyncio
+async def test_get_account_by_bank_success(
+    account_service: AccountService, mock_repo: MagicMock, mock_user_repo: MagicMock
+) -> None:
+    cuil = "12345678901"
+    bank = "Test Bank"
+    user_id = uuid.uuid4()
+    mock_user_repo.get_by_cuil.return_value = MagicMock(id=user_id)
+    mock_account = MagicMock(balance=Decimal("100.50"))
+    mock_repo.get_by_bank.return_value = mock_account
+
+    account = await account_service.get_account_by_bank(cuil, bank)
+
+    assert account == mock_account
+    mock_user_repo.get_by_cuil.assert_awaited_once_with(cuil)
+    mock_repo.get_by_bank.assert_awaited_once_with(user_id, bank)

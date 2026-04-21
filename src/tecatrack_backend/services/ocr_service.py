@@ -27,7 +27,7 @@ class OCRService:
             all the data extracted from the receipt.
         """
         raw_bytes = await file.read()
-        
+
         file_create = FileCreate(
             filename=file.filename,
             content_type=file.content_type,

@@ -144,3 +144,21 @@ class AccountService:
         if not account:
             raise EntityNotFoundError("Account", bank)
         return account
+
+    async def update_balance(self, account: Account, amount: Decimal) -> None:
+        """
+        Update the balance of an account.
+
+        Parameters:
+            account (Account): The account to update.
+            amount (Decimal): The amount to add to the account balance.
+
+        Raises:
+            EntityNotFoundError: If the account does not exist.
+        """
+        if not account:
+            raise EntityNotFoundError("Account", str(account.id))
+        account.balance += amount
+        await self.repository.update(account)
+
+    

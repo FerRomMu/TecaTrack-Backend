@@ -91,3 +91,13 @@ class AccountRepository:
         await self.session.flush()
         await self.session.refresh(db_account)
         return db_account
+
+    async def update(self, account: Account) -> None:
+        """
+        Update an existing Account in the database.
+
+        Parameters:
+            account (Account): Account instance to update.
+        """
+        await self.session.flush()
+        await self.session.refresh(account)

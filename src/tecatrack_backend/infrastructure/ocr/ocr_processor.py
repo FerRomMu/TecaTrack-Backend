@@ -31,8 +31,7 @@ class OCRProcessor:
             text = self._normalize_ocr_text(text)
             full_text += text + "\n"
 
-        fields = self._parse(full_text)
-        return OCRResponse(fields=fields)
+        return self._parse(full_text)
 
     def _preprocess(self, img_bgr: np.ndarray, min_width: int = 1000) -> np.ndarray:
         """
@@ -71,7 +70,7 @@ class OCRProcessor:
 
         return img_bgr
 
-    def _parse(self, text: str) -> dict[str, str | None]:
+    def _parse(self, text: str) -> OCRResponse:
         """
         Apply all regex patterns to ``text`` and return a mapping of field
         names to their extracted values.
@@ -85,7 +84,7 @@ class OCRProcessor:
                 :data:`PATTERNS`.  Values are stripped strings when a match is
                 found, or ``None`` otherwise.
         """
-        fields: dict[str, str | None] = {}
+        fields: OCRResponse = OCRResponse()
 
         for field, pattern in PATTERNS.items():
             match = re.search(pattern, text, re.IGNORECASE)

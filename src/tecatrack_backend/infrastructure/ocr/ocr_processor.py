@@ -80,11 +80,20 @@ class OCRProcessor:
                 lines from a single page).
 
         Returns:
-            dict[str, str | None]: A dictionary with one key per pattern in
-                :data:`PATTERNS`.  Values are stripped strings when a match is
-                found, or ``None`` otherwise.
+            OCRResponse: A response with one :class:`OCRResponse` with
+                all the data extracted from the receipt.
         """
-        fields: OCRResponse = OCRResponse()
+        data = {
+            "amount": 0.0,
+            "date": "",
+            "time": "",
+            "cbu": "",
+            "alias": "",
+            "cuil": "",
+            "receipt_number": "",
+            "source_bank": "",
+            "destination_bank": "",
+        }
 
         for field, pattern in PATTERNS.items():
             match = re.search(pattern, text, re.IGNORECASE)
@@ -93,13 +102,57 @@ class OCRProcessor:
                 if value is not None:
                     value = value.strip()
                     value = self._deduplicate_words(value)
-                    fields[field] = value
-                else:
-                    fields[field] = None
-            else:
-                fields[field] = None
+                    
+                    if field == "amount":
+                        data[field] = self._parse_amount(value)
+                    elif field == "cuil":
+                        data[field] = self._parse_cuil(value)
+                    else:
+                        data[field] = value
 
-        return fields
+        return OCRResponse(**data)
+
+    def _parse_amount(self, amount_str: str) -> float:
+        """
+        Clean amount string and convert to float.
+        Handles common formats like 1.500,00 or 1500.00.
+        """
+        try:
+            clean = re.sub(r"[^\d.,]", "", amount_str)
+            
+            if not clean:
+                return 0.0
+
+            # Case Dot as thousand, comma as decimal
+            if "," in clean and "." in clean:
+                if clean.find(".") < clean.find(","):
+                    # Remove thousand separator, swap decimal
+                    clean = clean.replace(".", "").replace(",", ".")
+                else:
+                    # Case: Comma as thousand, dot as decimal
+                    clean = clean.replace(",", "")
+            
+            # Case: Only comma as decimal
+            elif "," in clean:
+                clean = clean.replace(",", ".")
+
+            return float(clean)
+        except (ValueError, TypeError):
+            return 0.0
+    
+    def _parse_cuil(self, cuil_str: str) -> str:
+        """
+        Takes away the dots and hyphens from the cuil string.
+        """
+        try:
+            clean = re.sub(r"[^\d]", "", cuil_str)
+
+            if not clean:
+                return ""
+
+            return clean
+        except (ValueError, TypeError):
+            return ""
 
     def _extract(
         self,

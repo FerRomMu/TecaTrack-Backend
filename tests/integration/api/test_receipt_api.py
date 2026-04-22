@@ -73,21 +73,20 @@ async def test_upload_receipt_api_success(
         return ReceiptService(mock_processor, account_service, file_repo)
 
     app.dependency_overrides[get_receipt_service] = override_get_receipt_service
+    try:
+        # 3. Execute API Call
+        # dummy file since the processor is mocked
+        files = {"file": ("dummy.png", b"fake-image-content", "image/png")}
+        response = await async_client.post("/receipts/upload-receipt", files=files)
 
-    # 3. Execute API Call
-    # dummy file since the processor is mocked
-    files = {"file": ("dummy.png", b"fake-image-content", "image/png")}
-    response = await async_client.post("/receipts/upload-receipt", files=files)
+        # 4. Verify Response
+        assert response.status_code == 200
 
-    # 4. Verify Response
-    assert response.status_code == 200
+        # 5. Verify DB State
+        await db_session.refresh(source_account)
+        await db_session.refresh(dest_account)
 
-    # 5. Verify DB State
-    await db_session.refresh(source_account)
-    await db_session.refresh(dest_account)
-
-    assert source_account.balance == Decimal("3500.00")  # 5000 - 1500
-    assert dest_account.balance == Decimal("1500.00")  # 0 + 1500
-
-    # Cleanup override
-    app.dependency_overrides.pop(get_receipt_service, None)
+        assert source_account.balance == Decimal("3500.00")  # 5000 - 1500
+        assert dest_account.balance == Decimal("1500.00")  # 0 + 1500
+    finally:
+        app.dependency_overrides.pop(get_receipt_service, None)

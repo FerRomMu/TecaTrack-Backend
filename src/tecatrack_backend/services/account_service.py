@@ -4,6 +4,7 @@ from decimal import Decimal
 from sqlalchemy.exc import IntegrityError
 
 from tecatrack_backend.core.exceptions import (
+    DuplicateAccountError,
     EntityAlreadyExistsError,
     EntityNotFoundError,
     InvalidEntityError,
@@ -136,6 +137,7 @@ class AccountService:
 
         Raises:
             EntityNotFoundError: If no account exists with the given CUIL and bank.
+            DuplicateAccountError: If multiple accounts are found for the same bank.
         """
         user = await self.user_repository.get_by_cuil(cuil)
         if not user:

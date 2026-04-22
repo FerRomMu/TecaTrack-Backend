@@ -6,6 +6,7 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 
 from tecatrack_backend.core.exceptions import (
+    DuplicateAccountError,
     EntityAlreadyExistsError,
     EntityNotFoundError,
 )
@@ -184,3 +185,15 @@ async def test_get_account_by_bank_success(
     assert account == mock_account
     mock_user_repo.get_by_cuil.assert_awaited_once_with(cuil)
     mock_repo.get_by_bank.assert_awaited_once_with(user_id, bank)
+
+@pytest.mark.asyncio
+async def test_get_account_by_bank_duplicate(
+    account_service: AccountService, mock_repo: MagicMock, mock_user_repo: MagicMock
+) -> None:
+    cuil = "12345678901"
+    bank = "Duplicate Bank"
+    mock_user_repo.get_by_cuil.return_value = MagicMock(id=uuid.uuid4())
+    mock_repo.get_by_bank.side_effect = DuplicateAccountError(bank)
+
+    with pytest.raises(DuplicateAccountError):
+        await account_service.get_account_by_bank(cuil, bank)

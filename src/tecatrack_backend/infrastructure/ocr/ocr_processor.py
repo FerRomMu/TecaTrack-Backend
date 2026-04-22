@@ -132,9 +132,23 @@ class OCRProcessor:
                     # Case: Comma as thousand, dot as decimal
                     clean = clean.replace(",", "")
 
-            # Case: Only comma as decimal
+            # Case: only comma present (could be decimal or thousand separator)
             elif "," in clean:
-                clean = clean.replace(",", ".")
+                left, right = clean.rsplit(",", 1)
+                clean = (
+                    clean.replace(",", "")
+                    if len(right) == 3
+                    else f"{left.replace('.', '')}.{right}"
+                )
+
+            # Case: only dot present (could be decimal or thousand separator)
+            elif "." in clean:
+                left, right = clean.rsplit(".", 1)
+                clean = (
+                    clean.replace(".", "")
+                    if len(right) == 3
+                    else f"{left.replace(',', '')}.{right}"
+                )
 
             return float(clean)
         except (ValueError, TypeError):

@@ -102,7 +102,7 @@ class OCRProcessor:
                 if value is not None:
                     value = value.strip()
                     value = self._deduplicate_words(value)
-                    
+
                     if field == "amount":
                         data[field] = self._parse_amount(value)
                     elif field == "cuil":
@@ -119,7 +119,7 @@ class OCRProcessor:
         """
         try:
             clean = re.sub(r"[^\d.,]", "", amount_str)
-            
+
             if not clean:
                 return 0.0
 
@@ -131,7 +131,7 @@ class OCRProcessor:
                 else:
                     # Case: Comma as thousand, dot as decimal
                     clean = clean.replace(",", "")
-            
+
             # Case: Only comma as decimal
             elif "," in clean:
                 clean = clean.replace(",", ".")
@@ -139,7 +139,7 @@ class OCRProcessor:
             return float(clean)
         except (ValueError, TypeError):
             return 0.0
-    
+
     def _parse_cuil(self, cuil_str: str) -> str:
         """
         Takes away the dots and hyphens from the cuil string.

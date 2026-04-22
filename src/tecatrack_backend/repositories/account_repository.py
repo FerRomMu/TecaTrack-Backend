@@ -66,7 +66,8 @@ class AccountRepository:
                 bank (str): Bank name to match.
 
         Returns:
-                Account | None: The matching Account instance if found, `None` otherwise.
+                Account | None: The matching Account instance if found, `None`
+                otherwise.
         """
         result = await self.session.execute(
             select(Account).where(Account.user_id == user_id, Account.bank == bank)

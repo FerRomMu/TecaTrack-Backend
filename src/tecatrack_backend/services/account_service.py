@@ -160,5 +160,3 @@ class AccountService:
             raise EntityNotFoundError("Account", str(account.id))
         account.balance += amount
         await self.repository.update(account)
-
-    

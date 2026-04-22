@@ -1,3 +1,4 @@
+import re
 import uuid
 
 from sqlalchemy import select
@@ -49,6 +50,7 @@ class UserRepository:
         Returns:
             `User` if a matching user exists, `None` otherwise.
         """
+        cuil = re.sub(r"\D", "", cuil)
         result = await self.session.execute(select(User).where(User.cuil == cuil))
         return result.scalar_one_or_none()
 

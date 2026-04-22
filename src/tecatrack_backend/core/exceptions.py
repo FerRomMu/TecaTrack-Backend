@@ -94,3 +94,14 @@ class InvalidFileFormatError(TecaTrackError):
     """Raised when the file format is invalid."""
 
     pass
+
+
+class ReceiptValidationError(TecaTrackError):
+    def __init__(self, message: str):
+        """
+        Initialize a ReceiptValidationError for invalid OCR data.
+
+        Parameters:
+            message (str): Descriptive error message.
+        """
+        super().__init__(message)

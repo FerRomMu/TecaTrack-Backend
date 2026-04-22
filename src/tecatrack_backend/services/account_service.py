@@ -154,11 +154,6 @@ class AccountService:
         Parameters:
             account (Account): The account to update.
             amount (Decimal): The amount to add to the account balance.
-
-        Raises:
-            EntityNotFoundError: If the account does not exist.
         """
-        if not account:
-            raise EntityNotFoundError("Account", str(account.id))
         account.balance += amount
         await self.repository.update(account)

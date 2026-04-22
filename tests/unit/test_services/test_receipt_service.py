@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from tecatrack_backend.core.exceptions import EntityNotFoundError
+from tecatrack_backend.core.exceptions import EntityNotFoundError, ReceiptValidationError
 from tecatrack_backend.schemas.ocr_schemas import OCRResponse
 from tecatrack_backend.services.receipt_service import ReceiptService
 
@@ -160,3 +160,75 @@ async def test_upload_receipt_destination_account_not_found(
         await receipt_service.upload_receipt(_make_upload_file())
 
     mock_account_service.update_balance.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_upload_receipt_invalid_amount_zero(
+    receipt_service: ReceiptService,
+    mock_ocr_processor: MagicMock,
+) -> None:
+    ocr_data = OCRResponse(
+        amount=0.0,
+        date="2026-04-20",
+        time="10:00",
+        cbu="1234567890123456789012",
+        alias="a",
+        cuil="123",
+        receipt_number="1",
+        source_bank="Bank A",
+        destination_bank="Bank B",
+    )
+    mock_ocr_processor.process_receipt.return_value = ocr_data
+
+    with pytest.raises(ReceiptValidationError) as exc_info:
+        await receipt_service.upload_receipt(_make_upload_file())
+
+    assert "Invalid amount detected" in str(exc_info.value)
+
+
+@pytest.mark.asyncio
+async def test_upload_receipt_missing_cuil(
+    receipt_service: ReceiptService,
+    mock_ocr_processor: MagicMock,
+) -> None:
+    ocr_data = OCRResponse(
+        amount=100.0,
+        date="2026-04-20",
+        time="10:00",
+        cbu="1234567890123456789012",
+        alias="a",
+        cuil="",  # Empty CUIL
+        receipt_number="1",
+        source_bank="Bank A",
+        destination_bank="Bank B",
+    )
+    mock_ocr_processor.process_receipt.return_value = ocr_data
+
+    with pytest.raises(ReceiptValidationError) as exc_info:
+        await receipt_service.upload_receipt(_make_upload_file())
+
+    assert "CUIL not found" in str(exc_info.value)
+
+
+@pytest.mark.asyncio
+async def test_upload_receipt_missing_bank(
+    receipt_service: ReceiptService,
+    mock_ocr_processor: MagicMock,
+) -> None:
+    ocr_data = OCRResponse(
+        amount=100.0,
+        date="2026-04-20",
+        time="10:00",
+        cbu="1234567890123456789012",
+        alias="a",
+        cuil="123",
+        receipt_number="1",
+        source_bank="",  # Empty bank
+        destination_bank="Bank B",
+    )
+    mock_ocr_processor.process_receipt.return_value = ocr_data
+
+    with pytest.raises(ReceiptValidationError) as exc_info:
+        await receipt_service.upload_receipt(_make_upload_file())
+
+    assert "Source bank not found" in str(exc_info.value)

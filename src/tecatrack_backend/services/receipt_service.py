@@ -7,6 +7,9 @@ from tecatrack_backend.infrastructure.ocr.ocr_processor import OCRProcessor
 from tecatrack_backend.repositories.file_repository import FileRepository
 from tecatrack_backend.schemas.file_schemas import FileCreate
 from tecatrack_backend.services.account_service import AccountService
+from tecatrack_backend.core.exceptions import ReceiptValidationError
+from tecatrack_backend.schemas.ocr_schemas import OCRResponse
+from decimal import InvalidOperation
 
 
 class ReceiptService:
@@ -33,6 +36,7 @@ class ReceiptService:
         receipt_data = await asyncio.to_thread(
             self._ocr_processor.process_receipt, raw_bytes
         )
+        self._validate_receipt_data(receipt_data)
         amount = Decimal(str(receipt_data.amount))
 
         source_account = await self._account_service.get_account_by_bank(
@@ -62,3 +66,31 @@ class ReceiptService:
             data=raw_bytes,
         )
         await self._file_repository.create(file_create)
+
+    def _validate_receipt_data(self, data: OCRResponse) -> None:
+        """
+        Validates the fields of the receipt data. 
+
+        Parameters:
+            data (OCRResponse): Response from the OCR engine.
+
+        Raises:
+            ReceiptValidationError: If the receipt data is invalid.
+        """
+        try:
+            val_amount = Decimal(str(data.amount))
+            if val_amount <= 0:
+                raise ReceiptValidationError(
+                    f"Invalid amount detected: {val_amount}. Must be positive."
+                )
+        except InvalidOperation:
+            raise ReceiptValidationError(
+                f"Could not convert amount '{data.amount}' to Decimal."
+            )
+
+        if not data.cuil:
+            raise ReceiptValidationError("CUIL not found in receipt.")
+        if not data.source_bank:
+            raise ReceiptValidationError("Source bank not found in receipt.")
+        if not data.destination_bank:
+            raise ReceiptValidationError("Destination bank not found in receipt.")

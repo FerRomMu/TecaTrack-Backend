@@ -3,9 +3,9 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from tecatrack_backend.core.exceptions import DuplicateAccountError
 from tecatrack_backend.models import Account
 from tecatrack_backend.schemas import AccountCreate
-from tecatrack_backend.core.exceptions import DuplicateAccountError
 
 
 class AccountRepository:

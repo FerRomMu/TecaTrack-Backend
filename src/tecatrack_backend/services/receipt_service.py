@@ -1,15 +1,14 @@
 import asyncio
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from fastapi import UploadFile
 
+from tecatrack_backend.core.exceptions import ReceiptValidationError
 from tecatrack_backend.infrastructure.ocr.ocr_processor import OCRProcessor
 from tecatrack_backend.repositories.file_repository import FileRepository
 from tecatrack_backend.schemas.file_schemas import FileCreate
-from tecatrack_backend.services.account_service import AccountService
-from tecatrack_backend.core.exceptions import ReceiptValidationError
 from tecatrack_backend.schemas.ocr_schemas import OCRResponse
-from decimal import InvalidOperation
+from tecatrack_backend.services.account_service import AccountService
 
 
 class ReceiptService:
@@ -69,7 +68,7 @@ class ReceiptService:
 
     def _validate_receipt_data(self, data: OCRResponse) -> None:
         """
-        Validates the fields of the receipt data. 
+        Validates the fields of the receipt data.
 
         Parameters:
             data (OCRResponse): Response from the OCR engine.
@@ -83,10 +82,10 @@ class ReceiptService:
                 raise ReceiptValidationError(
                     f"Invalid amount detected: {val_amount}. Must be positive."
                 )
-        except InvalidOperation:
+        except InvalidOperation as err:
             raise ReceiptValidationError(
                 f"Could not convert amount '{data.amount}' to Decimal."
-            )
+            ) from err
 
         if not data.cuil:
             raise ReceiptValidationError("CUIL not found in receipt.")

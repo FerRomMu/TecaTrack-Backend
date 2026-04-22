@@ -186,6 +186,7 @@ async def test_get_account_by_bank_success(
     mock_user_repo.get_by_cuil.assert_awaited_once_with(cuil)
     mock_repo.get_by_bank.assert_awaited_once_with(user_id, bank)
 
+
 @pytest.mark.asyncio
 async def test_get_account_by_bank_duplicate(
     account_service: AccountService, mock_repo: MagicMock, mock_user_repo: MagicMock

@@ -4,7 +4,10 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from tecatrack_backend.core.exceptions import EntityNotFoundError, ReceiptValidationError
+from tecatrack_backend.core.exceptions import (
+    EntityNotFoundError,
+    ReceiptValidationError,
+)
 from tecatrack_backend.schemas.ocr_schemas import OCRResponse
 from tecatrack_backend.services.receipt_service import ReceiptService
 

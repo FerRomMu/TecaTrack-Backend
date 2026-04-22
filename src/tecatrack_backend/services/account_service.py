@@ -4,7 +4,6 @@ from decimal import Decimal
 from sqlalchemy.exc import IntegrityError
 
 from tecatrack_backend.core.exceptions import (
-    DuplicateAccountError,
     EntityAlreadyExistsError,
     EntityNotFoundError,
     InvalidEntityError,

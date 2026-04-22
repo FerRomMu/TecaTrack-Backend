@@ -153,13 +153,14 @@ async def test_get_all_accounts_by_user_id_empty(
     assert total_balance == Decimal("0")
     mock_repo.get_all_by_user_id.assert_awaited_once_with(user_id)
 
+
 @pytest.mark.asyncio
 async def test_get_account_by_bank_not_found(
     account_service: AccountService, mock_repo: MagicMock, mock_user_repo: MagicMock
 ) -> None:
     cuil = "12345678901"
     bank = "Test Bank"
-    
+
     mock_user_repo.get_by_cuil.return_value = MagicMock(id=uuid.uuid4())
     mock_repo.get_by_bank.return_value = None
 

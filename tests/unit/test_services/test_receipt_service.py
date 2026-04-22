@@ -28,13 +28,31 @@ def mock_account_service() -> MagicMock:
 
 
 @pytest.fixture
-def receipt_service(mock_ocr_processor: MagicMock, mock_account_service: MagicMock) -> ReceiptService:
-    return ReceiptService(ocr_processor=mock_ocr_processor, account_service=mock_account_service)
+def mock_file_repository() -> MagicMock:
+    """Return a mocked FileRepository with async methods."""
+    repo = MagicMock()
+    repo.create = AsyncMock()
+    return repo
+
+
+@pytest.fixture
+def receipt_service(
+    mock_ocr_processor: MagicMock,
+    mock_account_service: MagicMock,
+    mock_file_repository: MagicMock,
+) -> ReceiptService:
+    return ReceiptService(
+        ocr_processor=mock_ocr_processor,
+        account_service=mock_account_service,
+        file_repository=mock_file_repository,
+    )
 
 
 def _make_upload_file(content: bytes = b"dummy-image") -> MagicMock:
     upload = MagicMock()
     upload.read = AsyncMock(return_value=content)
+    upload.filename = "test_receipt.png"
+    upload.content_type = "image/png"
     return upload
 
 
@@ -54,17 +72,17 @@ async def test_upload_receipt_success(
         cuil="12345678901",
         receipt_number="123",
         source_bank="Bank A",
-        destination_bank="Bank B"
+        destination_bank="Bank B",
     )
     mock_ocr_processor.process_receipt.return_value = ocr_data
 
     # 2. Setup Account Data
     mock_source_account = MagicMock(id=uuid.uuid4())
     mock_dest_account = MagicMock(id=uuid.uuid4())
-    
+
     mock_account_service.get_account_by_bank.side_effect = [
         mock_source_account,
-        mock_dest_account
+        mock_dest_account,
     ]
 
     # 3. Execute
@@ -73,12 +91,16 @@ async def test_upload_receipt_success(
     # 4. Verify
     mock_ocr_processor.process_receipt.assert_called_once()
     assert mock_account_service.get_account_by_bank.call_count == 2
-    
+
     # Check balance updates
     # Source account should be decreased
-    mock_account_service.update_balance.assert_any_call(mock_source_account, Decimal("-1500.50"))
+    mock_account_service.update_balance.assert_any_call(
+        mock_source_account, Decimal("-1500.50")
+    )
     # Destination account should be increased
-    mock_account_service.update_balance.assert_any_call(mock_dest_account, Decimal("1500.50"))
+    mock_account_service.update_balance.assert_any_call(
+        mock_dest_account, Decimal("1500.50")
+    )
 
 
 @pytest.mark.asyncio
@@ -91,16 +113,21 @@ async def test_upload_receipt_source_account_not_found(
         amount=100.0,
         date="2026-04-20",
         time="10:00",
-        cbu="1", alias="a", cuil="123", receipt_number="1",
+        cbu="1",
+        alias="a",
+        cuil="123",
+        receipt_number="1",
         source_bank="Missing Bank",
-        destination_bank="Dest Bank"
+        destination_bank="Dest Bank",
     )
     mock_ocr_processor.process_receipt.return_value = ocr_data
-    mock_account_service.get_account_by_bank.side_effect = EntityNotFoundError("Account", "Missing Bank")
+    mock_account_service.get_account_by_bank.side_effect = EntityNotFoundError(
+        "Account", "Missing Bank"
+    )
 
     with pytest.raises(EntityNotFoundError):
         await receipt_service.upload_receipt(_make_upload_file())
-    
+
     mock_account_service.update_balance.assert_not_called()
 
 
@@ -114,16 +141,19 @@ async def test_upload_receipt_destination_account_not_found(
         amount=100.0,
         date="2026-04-20",
         time="10:00",
-        cbu="1", alias="a", cuil="123", receipt_number="1",
+        cbu="1",
+        alias="a",
+        cuil="123",
+        receipt_number="1",
         source_bank="Source Bank",
-        destination_bank="Missing Bank"
+        destination_bank="Missing Bank",
     )
     mock_ocr_processor.process_receipt.return_value = ocr_data
 
     mock_source_account = MagicMock(id=uuid.uuid4())
     mock_account_service.get_account_by_bank.side_effect = [
         mock_source_account,
-        EntityNotFoundError("Account", "Missing Bank")
+        EntityNotFoundError("Account", "Missing Bank"),
     ]
 
     with pytest.raises(EntityNotFoundError):

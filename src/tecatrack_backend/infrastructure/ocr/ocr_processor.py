@@ -193,10 +193,14 @@ class OCRProcessor:
                 None, previous_word.upper(), current_word.upper()
             ).ratio()
 
-            if similarity > 0.6 or current_word.upper().startswith(previous_word.upper()):
+            if similarity > 0.6 or current_word.upper().startswith(
+                previous_word.upper()
+            ):
                 # keep the longest valid representation of the word
                 clean_words[-1] = (
-                    current_word if len(current_word) >= len(previous_word) else previous_word
+                    current_word
+                    if len(current_word) >= len(previous_word)
+                    else previous_word
                 )
             else:
                 clean_words.append(current_word)

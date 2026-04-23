@@ -11,9 +11,9 @@ TecaTrack is an app for managing receipts and transactions using OCR technology.
 ### Key Features
 
 - **User Management:** Create and manage users,with validation for Argentine CUILs.
-- **OCR Processing:** Receive, validate, and extract structured data from receipt images.
-- **Transaction Management:** Mapping extracted OCR data to valid transaction entities, linking them to authenticated users.
-- **File Persistence:** Secure upload and binary storage of receipt images.
+- **OCR Processing:** Receive, validate, and extract structured data from Brunbank's receipts images.
+- **Transaction Management:** Mapping extracted OCR data to valid transaction entities, linking them to users' bank accounts.
+- **File Persistence:** Upload on binary storage users' receipts images.
 
 ## Project Architecture
 

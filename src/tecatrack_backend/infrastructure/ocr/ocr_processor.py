@@ -1,3 +1,4 @@
+import difflib
 import re
 from typing import TypedDict
 
@@ -107,6 +108,8 @@ class OCRProcessor:
                         data[field] = self._parse_amount(value)
                     elif field == "cuil":
                         data[field] = self._parse_cuil(value)
+                    elif field in ("source_bank", "destination_bank"):
+                        data[field] = self._parse_bank_name(value)
                     else:
                         data[field] = value
 
@@ -167,6 +170,38 @@ class OCRProcessor:
             return clean
         except (ValueError, TypeError):
             return ""
+
+    def _parse_bank_name(self, bank_str: str) -> str:
+        """
+        Cleans up bank names extracted from OCR using string similarity.
+        OCR algorithms often read logos as prefix typos (e.g., 'b Brubank',
+        'BVA BBVA', 'E Galicia').
+        """
+        # remove isolated single letters
+        bank_str = re.sub(r"(?<!\S)[a-zA-Z](?!\S)", "", bank_str).strip()
+
+        words = bank_str.split()
+        if not words:
+            return ""
+
+        clean_words = [words[0]]
+        for current_word in words[1:]:
+            previous_word = clean_words[-1]
+
+            # compare adjacent words
+            similarity = difflib.SequenceMatcher(
+                None, previous_word.upper(), current_word.upper()
+            ).ratio()
+
+            if similarity > 0.6 or current_word.upper().startswith(previous_word.upper()):
+                # keep the longest valid representation of the word
+                clean_words[-1] = (
+                    current_word if len(current_word) >= len(previous_word) else previous_word
+                )
+            else:
+                clean_words.append(current_word)
+
+        return " ".join(clean_words).strip()
 
     def _extract(
         self,

@@ -154,5 +154,4 @@ class AccountService:
             account (Account): The account to update.
             amount (Decimal): The amount to add to the account balance.
         """
-        account.balance += amount
-        await self.repository.update(account)
+        await self.repository.increment_balance(account.id, amount)

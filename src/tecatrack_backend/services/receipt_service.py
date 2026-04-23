@@ -49,7 +49,7 @@ class ReceiptService:
         await self._account_service.update_balance(destination_account, amount)
 
     async def _upload_file(
-        self, raw_bytes: bytes, file_name: str, content_type: str
+        self, raw_bytes: bytes, file_name: str | None, content_type: str
     ) -> None:
         """
         Uploads a file to the database.

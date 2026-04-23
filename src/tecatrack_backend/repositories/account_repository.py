@@ -1,6 +1,7 @@
 import uuid
+from decimal import Decimal
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from tecatrack_backend.core.exceptions import DuplicateAccountError
@@ -106,3 +107,11 @@ class AccountRepository:
         """
         await self.session.flush()
         await self.session.refresh(account)
+
+    async def increment_balance(self, account_id: uuid.UUID, amount: Decimal) -> None:
+        await self.session.execute(
+            update(Account)
+            .where(Account.id == account_id)
+            .values(balance=Account.balance + amount)
+        )
+        await self.session.flush()

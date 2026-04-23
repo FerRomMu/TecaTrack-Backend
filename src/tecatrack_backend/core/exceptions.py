@@ -63,7 +63,45 @@ class OCRProcessingError(TecaTrackError):
     pass
 
 
+class DuplicateEntityError(TecaTrackError):
+    def __init__(self, entity_name: str, identifier: str):
+        """
+        Initialize a DuplicateEntityError for multiple entities found.
+
+        Parameters:
+            entity_name (str): The name of the entity type (e.g., "Account").
+            identifier (str): The identifier that returned multiple results.
+        """
+        self.entity_name = entity_name
+        self.identifier = identifier
+        super().__init__(
+            f"Multiple {entity_name} entities found with identifier {identifier}."
+        )
+
+
+class DuplicateAccountError(DuplicateEntityError):
+    def __init__(self, bank_name: str):
+        """
+        Initialize a DuplicateAccountError for multiple accounts in the same bank.
+
+        Parameters:
+            bank_name (str): The name of the bank.
+        """
+        super().__init__("Account", bank_name)
+
+
 class InvalidFileFormatError(TecaTrackError):
     """Raised when the file format is invalid."""
 
     pass
+
+
+class ReceiptValidationError(TecaTrackError):
+    def __init__(self, message: str):
+        """
+        Initialize a ReceiptValidationError for invalid OCR data.
+
+        Parameters:
+            message (str): Descriptive error message.
+        """
+        super().__init__(message)

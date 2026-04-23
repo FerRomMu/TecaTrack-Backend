@@ -1,0 +1,98 @@
+import asyncio
+from decimal import Decimal, InvalidOperation
+
+from fastapi import UploadFile
+
+from tecatrack_backend.core.exceptions import ReceiptValidationError
+from tecatrack_backend.infrastructure.ocr.ocr_processor import OCRProcessor
+from tecatrack_backend.repositories.file_repository import FileRepository
+from tecatrack_backend.schemas.file_schemas import FileCreate
+from tecatrack_backend.schemas.ocr_schemas import OCRResponse
+from tecatrack_backend.services.account_service import AccountService
+
+
+class ReceiptService:
+    def __init__(
+        self,
+        ocr_processor: OCRProcessor,
+        account_service: AccountService,
+        file_repository: FileRepository,
+    ) -> None:
+        self.MAX_RECEIPT_SIZE_BYTES = 10 * 1024 * 1024
+        self._ocr_processor = ocr_processor
+        self._account_service = account_service
+        self._file_repository = file_repository
+
+    async def upload_receipt(self, file: UploadFile) -> None:
+        """
+        Processes a receipt image, uploads it to the database and updates the balances
+        of the accounts.
+
+        Parameters:
+            file (UploadFile): Uploaded image file (binary).
+        """
+        raw_bytes = await file.read(self.MAX_RECEIPT_SIZE_BYTES + 1)
+        if len(raw_bytes) > self.MAX_RECEIPT_SIZE_BYTES:
+            raise ReceiptValidationError("Receipt file exceeds 10MB limit.")
+        await self._upload_file(raw_bytes, file.filename, file.content_type)
+        receipt_data = await asyncio.to_thread(
+            self._ocr_processor.process_receipt, raw_bytes
+        )
+        self._validate_receipt_data(receipt_data)
+        amount = Decimal(str(receipt_data.amount))
+
+        source_account = await self._account_service.get_account_by_bank(
+            receipt_data.cuil, receipt_data.source_bank
+        )
+        destination_account = await self._account_service.get_account_by_bank(
+            receipt_data.cuil, receipt_data.destination_bank
+        )
+
+        await self._account_service.update_balance(source_account, -amount)
+        await self._account_service.update_balance(destination_account, amount)
+
+    async def _upload_file(
+        self, raw_bytes: bytes, file_name: str | None, content_type: str
+    ) -> None:
+        """
+        Uploads a file to the database.
+
+        Parameters:
+            raw_bytes (bytes): Raw bytes of the file.
+            file_name (str): Name of the file.
+            content_type (str): Content type of the file.
+        """
+        file_create = FileCreate(
+            filename=file_name,
+            content_type=content_type,
+            data=raw_bytes,
+        )
+        await self._file_repository.create(file_create)
+
+    def _validate_receipt_data(self, data: OCRResponse) -> None:
+        """
+        Validates the fields of the receipt data.
+
+        Parameters:
+            data (OCRResponse): Response from the OCR engine.
+
+        Raises:
+            ReceiptValidationError: If the receipt data is invalid.
+        """
+        try:
+            val_amount = Decimal(str(data.amount))
+            if val_amount <= 0:
+                raise ReceiptValidationError(
+                    f"Invalid amount detected: {val_amount}. Must be positive."
+                )
+        except InvalidOperation as err:
+            raise ReceiptValidationError(
+                f"Could not convert amount '{data.amount}' to Decimal."
+            ) from err
+
+        if not data.cuil:
+            raise ReceiptValidationError("CUIL not found in receipt.")
+        if not data.source_bank:
+            raise ReceiptValidationError("Source bank not found in receipt.")
+        if not data.destination_bank:
+            raise ReceiptValidationError("Destination bank not found in receipt.")

@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from tecatrack_backend.core.exception_handlers import setup_exception_handlers
 from tecatrack_backend.infrastructure.ocr.ocr_engine import OCREngine
 from tecatrack_backend.routers.account_router import router as account_router
-from tecatrack_backend.routers.ocr_router import router as ocr_router
+from tecatrack_backend.routers.receipt_router import router as receipt_router
 from tecatrack_backend.routers.user_router import router as user_router
 
 logger = logging.getLogger(__name__)
@@ -40,8 +40,8 @@ setup_exception_handlers(app)
 
 # Include routers
 app.include_router(user_router)
-app.include_router(ocr_router)
 app.include_router(account_router)
+app.include_router(receipt_router)
 
 
 class HealthResponse(BaseModel):

@@ -1,3 +1,4 @@
+import re
 import uuid
 
 from sqlalchemy import select
@@ -40,6 +41,17 @@ class UserRepository:
             `User` if a matching user exists, `None` otherwise.
         """
         result = await self.session.execute(select(User).where(User.email == email))
+        return result.scalar_one_or_none()
+
+    async def get_by_cuil(self, cuil: str) -> User | None:
+        """
+        Retrieve a User by exact CUIL address.
+
+        Returns:
+            `User` if a matching user exists, `None` otherwise.
+        """
+        cuil = re.sub(r"\D", "", cuil)
+        result = await self.session.execute(select(User).where(User.cuil == cuil))
         return result.scalar_one_or_none()
 
     async def create(self, user_create: UserCreate) -> User:

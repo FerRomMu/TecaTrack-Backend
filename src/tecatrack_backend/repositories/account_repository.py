@@ -1,8 +1,10 @@
 import uuid
+from decimal import Decimal
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from tecatrack_backend.core.exceptions import DuplicateAccountError, EntityNotFoundError
 from tecatrack_backend.models import Account
 from tecatrack_backend.schemas import AccountCreate
 
@@ -56,6 +58,27 @@ class AccountRepository:
         )
         return result.scalars().all()
 
+    async def get_by_bank(self, user_id: uuid.UUID, bank: str) -> Account | None:
+        """
+        Retrieve an account by its bank from the specified user.
+
+        Parameters:
+                user_id (uuid.UUID): UUID of the user whose account should be
+                retrieved.
+                bank (str): Bank name to match.
+
+        Returns:
+                Account | None: The matching Account instance if found, `None`
+                otherwise.
+        """
+        result = await self.session.execute(
+            select(Account).where(Account.user_id == user_id, Account.bank == bank)
+        )
+        accounts = result.scalars().all()
+        if len(accounts) > 1:
+            raise DuplicateAccountError(bank)
+        return accounts[0] if accounts else None
+
     async def create(self, account_create: AccountCreate) -> Account:
         """
         Create a new Account from the provided creation schema and persist it to the
@@ -74,3 +97,23 @@ class AccountRepository:
         await self.session.flush()
         await self.session.refresh(db_account)
         return db_account
+
+    async def update(self, account: Account) -> None:
+        """
+        Update an existing Account in the database.
+
+        Parameters:
+            account (Account): Account instance to update.
+        """
+        await self.session.flush()
+        await self.session.refresh(account)
+
+    async def increment_balance(self, account_id: uuid.UUID, amount: Decimal) -> None:
+        result = await self.session.execute(
+            update(Account)
+            .where(Account.id == account_id)
+            .values(balance=Account.balance + amount)
+        )
+        if result.rowcount == 0:
+            raise EntityNotFoundError("Account", str(account_id))
+        await self.session.flush()

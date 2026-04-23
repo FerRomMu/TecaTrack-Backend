@@ -1,3 +1,4 @@
+import difflib
 import re
 from typing import TypedDict
 
@@ -31,8 +32,7 @@ class OCRProcessor:
             text = self._normalize_ocr_text(text)
             full_text += text + "\n"
 
-        fields = self._parse(full_text)
-        return OCRResponse(fields=fields)
+        return self._parse(full_text)
 
     def _preprocess(self, img_bgr: np.ndarray, min_width: int = 1000) -> np.ndarray:
         """
@@ -71,7 +71,7 @@ class OCRProcessor:
 
         return img_bgr
 
-    def _parse(self, text: str) -> dict[str, str | None]:
+    def _parse(self, text: str) -> OCRResponse:
         """
         Apply all regex patterns to ``text`` and return a mapping of field
         names to their extracted values.
@@ -81,11 +81,20 @@ class OCRProcessor:
                 lines from a single page).
 
         Returns:
-            dict[str, str | None]: A dictionary with one key per pattern in
-                :data:`PATTERNS`.  Values are stripped strings when a match is
-                found, or ``None`` otherwise.
+            OCRResponse: A response with one :class:`OCRResponse` with
+                all the data extracted from the receipt.
         """
-        fields: dict[str, str | None] = {}
+        data = {
+            "amount": 0.0,
+            "date": "",
+            "time": "",
+            "cbu": "",
+            "alias": "",
+            "cuil": "",
+            "receipt_number": "",
+            "source_bank": "",
+            "destination_bank": "",
+        }
 
         for field, pattern in PATTERNS.items():
             match = re.search(pattern, text, re.IGNORECASE)
@@ -94,13 +103,109 @@ class OCRProcessor:
                 if value is not None:
                     value = value.strip()
                     value = self._deduplicate_words(value)
-                    fields[field] = value
-                else:
-                    fields[field] = None
-            else:
-                fields[field] = None
 
-        return fields
+                    if field == "amount":
+                        data[field] = self._parse_amount(value)
+                    elif field == "cuil":
+                        data[field] = self._parse_cuil(value)
+                    elif field in ("source_bank", "destination_bank"):
+                        data[field] = self._parse_bank_name(value)
+                    else:
+                        data[field] = value
+
+        return OCRResponse(**data)
+
+    def _parse_amount(self, amount_str: str) -> float:
+        """
+        Clean amount string and convert to float.
+        Handles common formats like 1.500,00 or 1500.00.
+        """
+        try:
+            clean = re.sub(r"[^\d.,]", "", amount_str)
+
+            if not clean:
+                return 0.0
+
+            # Case Dot as thousand, comma as decimal
+            if "," in clean and "." in clean:
+                if clean.find(".") < clean.find(","):
+                    # Remove thousand separator, swap decimal
+                    clean = clean.replace(".", "").replace(",", ".")
+                else:
+                    # Case: Comma as thousand, dot as decimal
+                    clean = clean.replace(",", "")
+
+            # Case: only comma present (could be decimal or thousand separator)
+            elif "," in clean:
+                left, right = clean.rsplit(",", 1)
+                clean = (
+                    clean.replace(",", "")
+                    if len(right) == 3
+                    else f"{left.replace('.', '')}.{right}"
+                )
+
+            # Case: only dot present (could be decimal or thousand separator)
+            elif "." in clean:
+                left, right = clean.rsplit(".", 1)
+                clean = (
+                    clean.replace(".", "")
+                    if len(right) == 3
+                    else f"{left.replace(',', '')}.{right}"
+                )
+
+            return float(clean)
+        except (ValueError, TypeError):
+            return 0.0
+
+    def _parse_cuil(self, cuil_str: str) -> str:
+        """
+        Takes away the dots and hyphens from the cuil string.
+        """
+        try:
+            clean = re.sub(r"[^\d]", "", cuil_str)
+
+            if not clean:
+                return ""
+
+            return clean
+        except (ValueError, TypeError):
+            return ""
+
+    def _parse_bank_name(self, bank_str: str) -> str:
+        """
+        Cleans up bank names extracted from OCR using string similarity.
+        OCR algorithms often read logos as prefix typos (e.g., 'b Brubank',
+        'BVA BBVA', 'E Galicia').
+        """
+        # remove isolated single letters
+        bank_str = re.sub(r"(?<!\S)[a-zA-Z](?!\S)", "", bank_str).strip()
+
+        words = bank_str.split()
+        if not words:
+            return ""
+
+        clean_words = [words[0]]
+        for current_word in words[1:]:
+            previous_word = clean_words[-1]
+
+            # compare adjacent words
+            similarity = difflib.SequenceMatcher(
+                None, previous_word.upper(), current_word.upper()
+            ).ratio()
+
+            if similarity > 0.6 or current_word.upper().startswith(
+                previous_word.upper()
+            ):
+                # keep the longest valid representation of the word
+                clean_words[-1] = (
+                    current_word
+                    if len(current_word) >= len(previous_word)
+                    else previous_word
+                )
+            else:
+                clean_words.append(current_word)
+
+        return " ".join(clean_words).strip()
 
     def _extract(
         self,

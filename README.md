@@ -151,7 +151,7 @@ We use `pytest` along with `pytest-asyncio` for testing.
 
 The entity-relationship diagram for the application's database is available below:
 
-![Database Schema](doc/schema.png)
+![Database Schema](doc/db-schema.png)
 
 _(You can also use the [dbdiagram](https://dbdiagram.io/) extension for VSCode with the `doc/poc-datamodel.dbml` file to view it in a more interactive way)_
 

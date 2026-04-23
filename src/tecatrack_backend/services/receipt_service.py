@@ -18,6 +18,7 @@ class ReceiptService:
         account_service: AccountService,
         file_repository: FileRepository,
     ) -> None:
+        self.MAX_RECEIPT_SIZE_BYTES = 10 * 1024 * 1024
         self._ocr_processor = ocr_processor
         self._account_service = account_service
         self._file_repository = file_repository
@@ -30,7 +31,9 @@ class ReceiptService:
         Parameters:
             file (UploadFile): Uploaded image file (binary).
         """
-        raw_bytes = await file.read()
+        raw_bytes = await file.read(self.MAX_RECEIPT_SIZE_BYTES + 1)
+        if len(raw_bytes) > self.MAX_RECEIPT_SIZE_BYTES:
+            raise ReceiptValidationError("Receipt file exceeds 10MB limit.")
         await self._upload_file(raw_bytes, file.filename, file.content_type)
         receipt_data = await asyncio.to_thread(
             self._ocr_processor.process_receipt, raw_bytes

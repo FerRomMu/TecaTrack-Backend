@@ -1,3 +1,4 @@
+from tecatrack_backend.core.exceptions import EntityNotFoundError
 import uuid
 from decimal import Decimal
 
@@ -109,9 +110,11 @@ class AccountRepository:
         await self.session.refresh(account)
 
     async def increment_balance(self, account_id: uuid.UUID, amount: Decimal) -> None:
-        await self.session.execute(
+        result = await self.session.execute(
             update(Account)
             .where(Account.id == account_id)
             .values(balance=Account.balance + amount)
         )
+        if result.rowcount == 0:
+            raise EntityNotFoundError("Account", str(account_id))
         await self.session.flush()

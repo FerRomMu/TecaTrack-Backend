@@ -1,11 +1,10 @@
-from tecatrack_backend.core.exceptions import EntityNotFoundError
 import uuid
 from decimal import Decimal
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from tecatrack_backend.core.exceptions import DuplicateAccountError
+from tecatrack_backend.core.exceptions import DuplicateAccountError, EntityNotFoundError
 from tecatrack_backend.models import Account
 from tecatrack_backend.schemas import AccountCreate
 

@@ -4,6 +4,14 @@
   <img src=".github/assets/app-icon.png" alt="TecaTrack Logo" width="350"/>
 </p>
 
+## Main repository
+
+If you haven’t read the documentation in the project’s main repository yet, you can find it here:
+
+[Project Main Repository](https://github.com/FerRomMu/TecaTrack)
+
+All project documentation is centralized there.
+
 ## About the Project
 
 TecaTrack is an app for managing receipts and transactions using OCR technology. Currently in a Proof of Concept (PoC) phase. The core functionality revolves around extracting data from physical receipts and accurately mapping it to user accounts and transaction records.

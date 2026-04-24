@@ -4,6 +4,37 @@
   <img src=".github/assets/app-icon.png" alt="TecaTrack Logo" width="350"/>
 </p>
 
+## Main repository
+
+If you haven’t read the documentation in the project’s main repository yet, you can find it here:
+
+[Project Main Repository](https://github.com/FerRomMu/TecaTrack)
+
+All project documentation is centralized there.
+
+## About the Project
+
+TecaTrack is an app for managing receipts and transactions using OCR technology. Currently in a Proof of Concept (PoC) phase. The core functionality revolves around extracting data from physical receipts and accurately mapping it to user accounts and transaction records.
+
+### Key Features
+
+- **User Management:** Create and manage users, with validation for Argentine CUILs.
+- **OCR Processing:** Receive, validate, and extract structured data from Brunbank's receipts images.
+- **Transaction Management:** Mapping extracted OCR data to valid transaction entities, linking them to users' bank accounts.
+- **File Persistence:** Upload on binary storage users' receipts images.
+
+## Project Architecture
+
+This project uses a source layout to avoid import issues. It has a layered architecture to ensure separation of concerns and maintainability:
+
+- `src/tecatrack_backend/core/`: Configuration, database setup, and centralized exception handling.
+- `src/tecatrack_backend/models.py`: SQLAlchemy database models.
+- `src/tecatrack_backend/schemas/`: Pydantic models for request/response validation.
+- `src/tecatrack_backend/repositories/`: Data access layer (database queries, file storage operations).
+- `src/tecatrack_backend/services/`: Core business logic (OCR mapping, validation rules).
+- `src/tecatrack_backend/routers/`: API endpoints and network layer.
+- `src/tecatrack_backend/infrastructure/`: Infrastructure layer (OCR).
+
 ## Development Setup
 
 This project uses `uv` for dependency management and `ruff` for linting and formatting.
@@ -66,6 +97,7 @@ This project uses PostgreSQL for the database and Alembic for schema migrations.
    ```
 
    Example `.env` content:
+
    ```env
    DATABASE_URL=postgresql+asyncpg://postgres:yourpassword@localhost:5432/tecatrack
    TEST_DATABASE_URL=postgresql+asyncpg://postgres:yourpassword@localhost:5432/tecatrack_test
@@ -111,6 +143,7 @@ To format the code:
 ```bash
 ruff format .
 ```
+
 ### Testing
 
 We use `pytest` along with `pytest-asyncio` for testing.
@@ -124,4 +157,11 @@ We use `pytest` along with `pytest-asyncio` for testing.
 
 ## Database Schema
 
-[dbdiagram](https://dbdiagram.io/) or dbdiagram extension for VSCode is needed to show the schema.
+The entity-relationship diagram for the application's database is available below:
+
+![Database Schema](doc/db-schema.png)
+
+_(You can also use the [dbdiagram](https://dbdiagram.io/) extension for VSCode with the `doc/poc-datamodel.dbml` file to view it in a more interactive way)_
+
+> [!NOTE]
+> At the PoC stage, the schema is already being created, but the application only uses the `users`, `accounts`, and `files` tables.

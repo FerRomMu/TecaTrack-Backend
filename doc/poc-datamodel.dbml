@@ -2,6 +2,7 @@ Table users {
   id uuid [pk]
   email text [unique, not null]
   full_name text
+  cuil CHAR(11) [unique, not null]
   created_at timestamptz
 }
 
